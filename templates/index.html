@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}index{% endblock %}
+
+{% block content %}
+
+<div>
+    <h2 class="font-weight-normal text-center"><strong>Votre résultat:</strong> pour la sélection suivante:</h2>
+
+    <div class="table row justify-content-center">
+        {{ table_html|safe }}
+    </div>
+</div>
+
+{% endblock %}
