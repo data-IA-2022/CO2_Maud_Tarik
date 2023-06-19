@@ -3,6 +3,7 @@ import numpy as np
 
 from utils import db_azure_connect, get_sod_data, haversine_distance, calculate_angle
 from sqlalchemy import create_engine, types, text
+from sqlalchemy.engine.reflection import Inspector
 
 from sqlalchemy import create_engine, types
 from azure.identity import DefaultAzureCredential
@@ -19,7 +20,13 @@ secret_value = setting.value
 
 # Create the SQLAlchemy engine
 engine = create_engine(secret_value)
+# Create the SQLAlchemy inspector
+inspector = Inspector.from_engine(engine)
 
+# drop existing table
+with engine.begin() as conn:
+        print(conn)
+        conn.execute(text(f"""DROP TABLE IF EXISTS super_table_tm;  """))
 
 ## 1. Import du dataset connection api seattle data
 
@@ -49,22 +56,22 @@ data_types = {
     'numberoffloors': types.SmallInteger,
     'propertygfatotal': types.Integer,
     'propertygfaparking': types.Integer,
-    'propertygfabuilding_s': types.Integer,
+    'propertygfabuildings': types.Float,
     'listofallpropertyusetypes': types.String(length=255),
     'largestpropertyusetype': types.String(length=52),
     'largestpropertyusetypegfa': types.Float,
     'energystarscore': types.Float,
-    'siteeui_kbtu_sf': types.Float,
-    'siteeuiwn_kbtu_sf': types.Float,
-    'sourceeui_kbtu_sf': types.Float,
-    'sourceeuiwn_kbtu_sf': types.Float,
-    'siteenergyuse_kbtu': types.Float,
-    'siteenergyusewn_kbtu': types.Float,
+    'siteeuikbtusf': types.Float,
+    'siteeuiwnkbtusf': types.Float,
+    'sourceeuikbtusf': types.Float,
+    'sourceeuiwnkbtusf': types.Float,
+    'siteenergyusekbtu': types.Float,
+    'siteenergyusewnkbtu': types.Float,
     'steamuse_kbtu': types.Float,
-    'electricity_kwh': types.Float,
-    'electricity_kbtu': types.Float,
-    'naturalgas_therms': types.Float,
-    'naturalgas_kbtu': types.Float,
+    'electricitykwh': types.Float,
+    'electricitykbtu': types.Float,
+    'naturalgastherms': types.Float,
+    'naturalgaskbtu': types.Float,
     'defaultdata': types.String(length=5),
     'compliancestatus': types.String(length=28),
     'totalghgemissions': types.Float,
@@ -162,7 +169,8 @@ for data_year, data_id in data_ids_dict.items():
     data['siteenergyusekWh'] = pd.to_numeric(data['siteenergyusekbtu'], errors="coerce") * 0.29307107
 
     # Convert square feet to square meters
-    data['propertygfabuildingm2'] = pd.to_numeric(data['propertygfabuildings'], errors="coerce") * 0.092903
+    data['propertygfabuildings'] = pd.to_numeric(data['propertygfabuildings'], errors="coerce")
+    data['propertygfabuildingm2'] = data['propertygfabuildings'] * 0.092903
 
     # Apply logarithmic transformation to columns with offset
     offset = 1  # Define the offset value
@@ -175,6 +183,7 @@ for data_year, data_id in data_ids_dict.items():
     # Convert latitude and longitude columns to floating-point numbers
     data['latitude'] = data['latitude'].astype(float)
     data['longitude'] = data['longitude'].astype(float)
+    
     # Center of Seattle coordinates
     seattle_center_lat = 47.6062
     seattle_center_lon = -122.3321
@@ -185,16 +194,45 @@ for data_year, data_id in data_ids_dict.items():
 
     data['angle'] = data.apply(lambda row: calculate_angle(
         seattle_center_lat, seattle_center_lon, row['latitude'], row['longitude']), axis=1)
-
+    # drop duplicate in 2021 
+    data.drop_duplicates(subset=['osebuildingid'], inplace=True)
     # Add data_year to the df name
     variable_name = f"data_{data_year}"
     globals()[variable_name] = data
     df_list_per_year.append(globals()[variable_name])
-    # print(data.columns)
-    with engine.begin() as conn:
-        print(conn)
-        conn.execute(text(f"""DELETE FROM "super_table_tm" WHERE "datayear"='{data_year}'  """))
+    print(data.columns)
+            
     db_azure_connect(df = data, data_types=data_types, table_name = 'super_table_tm')
+    # with engine.connect() as conn:
+    #     data_year = 'your_data_year'  # Replace with the desired data year
+    #     conn.execute(text(f"""DELETE FROM "super_table_tm" WHERE "datayear" = '{data_year}'"""))
+    #     print("Data deleted from super_table_tm table.")
+    
+    # db_azure_connect(df = data, data_types=data_types, table_name = 'super_table_tm')
+
+
+# Pour une raison qui m'est inconnue le ty de certaines colonne ne change pas et rest en string
+# Nous allons modidier la table après chargement des données 
+# Execute the ALTER TABLE statements
+
+# alter_statements = [
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN siteeuikbtusf TYPE float8 USING siteeuikbtusf::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN siteeuiwnkbtusf TYPE float8 USING siteeuiwnkbtusf::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN sourceeuikbtusf TYPE float8 USING sourceeuikbtusf::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN sourceeuiwnkbtusf TYPE float8 USING sourceeuiwnkbtusf::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN siteenergyusekbtu TYPE float8 USING siteenergyusekbtu::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN siteenergyusewnkbtu TYPE float8 USING siteenergyusewnkbtu::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN steamusekbtu TYPE float8 USING steamusekbtu::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN electricitykbtu TYPE float8 USING electricitykbtu::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN naturalgastherms TYPE float8 USING naturalgastherms::float8;",
+#     "ALTER TABLE public.super_table_tm ALTER COLUMN naturalgaskbtu TYPE float8 USING naturalgaskbtu::float8;"
+# ]
+
+
+# with engine.connect() as conn:
+#     print(conn)
+#     for statement in alter_statements:
+#         conn.execute(statement)
     
   
   
