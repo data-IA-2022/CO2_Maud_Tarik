@@ -13,22 +13,8 @@
       <input type="hidden" id="longitude" name="longitude">
       <input id= "btn" type="submit" value="Submit">
   </form>
-  
-  
   <div>
     Latitude: <span id="latitude-display">{{coordinates[0]}}</span><br>
     Longitude: <span id="longitude-display">{{coordinates[1]}}</span>
   </div>
-</div>
-<div id='searchBoxContainer'>
-  <input type='text' id='searchBox' />
-</div>
-
-<div id="myMap" style="position:relative;width:100%;min-width:290px;height:600px;background-color:gray"></div>
-
-<fieldset style="width:800px;margin-top:10px;">
-  <legend>Autosuggest with Map Sample</legend>
-  This sample shows the basic implementation of the autosuggestion module with a map. 
-</fieldset>
-
 {% endblock %}

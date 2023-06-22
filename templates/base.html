@@ -45,38 +45,5 @@
             });
         }
     </script>
-    <script>
-        var map;
-    
-        function GetMap() {
-            map = new Microsoft.Maps.Map('#myMap', {});
-    
-            Microsoft.Maps.loadModule('Microsoft.Maps.AutoSuggest', function () {
-                var manager = new Microsoft.Maps.AutosuggestManager({ map: map });
-                manager.attachAutosuggest('#searchBox', '#searchBoxContainer', suggestionSelected);
-            });
-        }
-    
-        function suggestionSelected(result) {
-            //Remove previously selected suggestions from the map.
-            map.entities.clear();
-    
-            //Show the suggestion as a pushpin and center map over it.
-            var pin = new Microsoft.Maps.Pushpin(result.location);
-            map.entities.push(pin);
-    
-            map.setView({ bounds: result.bestView });
-        }
-    </script>
-    <script>
-        // Dynamic load the Bing Maps Key and Script
-        // Get your own Bing Maps key at https://www.microsoft.com/maps
-        (async () => {
-            let script = document.createElement("script");
-            let bingKey = await fetch("https://samples.azuremaps.com/api/GetBingMapsKey").then(r => r.text()).then(key => { return key });
-            script.setAttribute("src", `https://www.bing.com/api/maps/mapcontrol?callback=GetMap&key=AqCmXCSXpin76Mn5hLW5CVVvqbY88Ae9TbqET5mzzwohbCvs-ZbboA-OWuAoNThc`);
-            document.body.appendChild(script);
-        })();
-      </script>
     {% endblock %}
 {% endblock %}
