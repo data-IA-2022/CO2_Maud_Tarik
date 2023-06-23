@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import requests
 from flask import Flask, render_template, request
 from flask_bootstrap import Bootstrap
@@ -168,11 +169,13 @@ def model():
             }, index=[0])  # Add index sinon ValueError: If using all scalar values, you must pass an index
             
             # get selected model selected_model field
-            selected_model = request.form['model_name']
+            selected_model = request.form['model']
             # import model avec joblib
             loaded_model = joblib.load(f'data/{selected_model}.pkl')
             # prediction avec le modele
             y_pred = loaded_model.predict(df_input)
+            ghgemissions = np.exp(round(y_pred[0][0], 2))
+            energyuse = np.exp(round(y_pred[0][1], 2))
             
         except json.decoder.JSONDecodeError as e:
             print('Error decoding JSON response:', e)
@@ -181,7 +184,7 @@ def model():
                 
         return render_template('model.html', building_types=building_types, property_types=property_types, suggestions=suggestions, coordinates=coordinates, latitude=latitude,
                                longitude=longitude, bing_maps_api_key=bingApiKey,table = df_input.to_html(),
-                               model_names=model_names, prediction=y_pred)
+                               model_names=model_names,prediction=y_pred.all(), ghgemissions=ghgemissions,energyuse=energyuse)
     return render_template('model.html', building_types=building_types, property_types=property_types, suggestions=suggestions, coordinates=coordinates, latitude=latitude,
                            longitude=longitude, bing_maps_api_key=bingApiKey,model_names=model_names)
 

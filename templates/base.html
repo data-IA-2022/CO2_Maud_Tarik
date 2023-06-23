@@ -18,73 +18,81 @@
     
     <script>
         var map;
-
+      
         function GetMap() {
-        map = new Microsoft.Maps.Map('#map', {});
-
-        Microsoft.Maps.loadModule('Microsoft.Maps.AutoSuggest', function () {
+          map = new Microsoft.Maps.Map('#map', {});
+      
+          Microsoft.Maps.loadModule('Microsoft.Maps.AutoSuggest', function () {
             var manager = new Microsoft.Maps.AutosuggestManager({ map: map });
             manager.attachAutosuggest('#addressInput', '#addressInputContainer', suggestionSelected);
-        });
-
-        // Retrieve the coordinates if available
-        var latitude = parseFloat(document.getElementById('latitude-display').textContent);
-        var longitude = parseFloat(document.getElementById('longitude-display').textContent);
-
-        if (!isNaN(latitude) && !isNaN(longitude)) {
+          });
+      
+          // Retrieve the coordinates from localStorage if available
+          var latitude = parseFloat(localStorage.getItem('latitude'));
+          var longitude = parseFloat(localStorage.getItem('longitude'));
+      
+          if (!isNaN(latitude) && !isNaN(longitude)) {
             var location = new Microsoft.Maps.Location(latitude, longitude);
             var pin = new Microsoft.Maps.Pushpin(location);
             map.entities.push(pin);
             map.setView({ center: location, zoom: 10 });
+          }
         }
-        }
-
+      
         function suggestionSelected(result) {
-        // Remove previously selected suggestions from the map.
-        map.entities.clear();
-
-        // Show the suggestion as a pushpin and center the map over it.
-        var pin = new Microsoft.Maps.Pushpin(result.location);
-        map.entities.push(pin);
-
-        map.setView({ bounds: result.bestView });
+          // Remove previously selected suggestions from the map.
+          map.entities.clear();
+      
+          // Show the suggestion as a pushpin and center the map over it.
+          var pin = new Microsoft.Maps.Pushpin(result.location);
+          map.entities.push(pin);
+      
+          map.setView({ bounds: result.bestView });
+      
+          // Store the latitude and longitude in localStorage
+          localStorage.setItem('latitude', result.location.latitude);
+          localStorage.setItem('longitude', result.location.longitude);
         }
-
+      
         function submitForm() {
-        var addressInput = document.getElementById('addressInput').value;
-        var manager = new Microsoft.Maps.AutosuggestManager();
-        var addressHiddenInput = document.getElementById('addressHiddenInput');
-        addressHiddenInput.value = addressInput;
-        manager.geocode({
+          var addressInput = document.getElementById('addressInput').value;
+          var manager = new Microsoft.Maps.AutosuggestManager();
+          var addressHiddenInput = document.getElementById('addressHiddenInput');
+          addressHiddenInput.value = addressInput;
+          manager.geocode({
             query: addressInput,
             callback: function (result) {
-            if (result && result.results && result.results.length > 0) {
+              if (result && result.results && result.results.length > 0) {
                 var location = result.results[0].location;
                 var latitude = location.latitude;
                 var longitude = location.longitude;
-
+      
                 // Use latitude and longitude as needed.
                 console.log('Latitude:', latitude);
                 console.log('Longitude:', longitude);
-
+      
                 // Update the latitude and longitude display
                 document.getElementById('latitude-display').textContent = latitude;
                 document.getElementById('longitude-display').textContent = longitude;
-
+      
                 // Show the suggestion as a pushpin and center the map over it.
                 var pin = new Microsoft.Maps.Pushpin(location);
                 map.entities.push(pin);
-
+      
                 map.setView({ bounds: result.results[0].bestView });
-            } else {
+      
+                // Store the latitude and longitude in localStorage
+                localStorage.setItem('latitude', latitude);
+                localStorage.setItem('longitude', longitude);
+              } else {
                 console.log('Geocode failed for the provided address.');
+              }
             }
-            }
-        });
-
-        return true; // Allow form submission.
+          });
+      
+          return true; // Allow form submission.
         }
-    </script>
+      </script>
     <script src='https://www.bing.com/api/maps/mapcontrol?key={{ bing_maps_api_key }}&callback=GetMap' async defer></script>
     
 {% endblock %}
