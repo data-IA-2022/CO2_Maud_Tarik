@@ -1,0 +1,21 @@
+adress 4000 27th Ave. W.
+
+Primary Property Type: K-12 School
+
+Building Type: SPS-District K-12
+
+Is it using Electricity: 1
+
+Is it using Natural Gaz: 1
+
+Is it using Steam: 1
+
+Number of Buildings: 1
+
+Number of Floors: 2
+
+Year Built: 1990
+
+Largest Property Use Type GFA: 54986.0
+
+Property GFA Buildings: 54986.0

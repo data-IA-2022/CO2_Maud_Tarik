@@ -16,6 +16,77 @@
     <script src="https://www.bing.com/api/maps/mapcontrol?key=AqCmXCSXpin76Mn5hLW5CVVvqbY88Ae9TbqET5mzzwohbCvs-ZbboA-OWuAoNThc&callback=loadMapScenario" async defer></script>
     <link rel="stylesheet" href="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer>
     
+    <script>
+        var map;
+
+        function GetMap() {
+        map = new Microsoft.Maps.Map('#map', {});
+
+        Microsoft.Maps.loadModule('Microsoft.Maps.AutoSuggest', function () {
+            var manager = new Microsoft.Maps.AutosuggestManager({ map: map });
+            manager.attachAutosuggest('#addressInput', '#addressInputContainer', suggestionSelected);
+        });
+
+        // Retrieve the coordinates if available
+        var latitude = parseFloat(document.getElementById('latitude-display').textContent);
+        var longitude = parseFloat(document.getElementById('longitude-display').textContent);
+
+        if (!isNaN(latitude) && !isNaN(longitude)) {
+            var location = new Microsoft.Maps.Location(latitude, longitude);
+            var pin = new Microsoft.Maps.Pushpin(location);
+            map.entities.push(pin);
+            map.setView({ center: location, zoom: 10 });
+        }
+        }
+
+        function suggestionSelected(result) {
+        // Remove previously selected suggestions from the map.
+        map.entities.clear();
+
+        // Show the suggestion as a pushpin and center the map over it.
+        var pin = new Microsoft.Maps.Pushpin(result.location);
+        map.entities.push(pin);
+
+        map.setView({ bounds: result.bestView });
+        }
+
+        function submitForm() {
+        var addressInput = document.getElementById('addressInput').value;
+        var manager = new Microsoft.Maps.AutosuggestManager();
+        var addressHiddenInput = document.getElementById('addressHiddenInput');
+        addressHiddenInput.value = addressInput;
+        manager.geocode({
+            query: addressInput,
+            callback: function (result) {
+            if (result && result.results && result.results.length > 0) {
+                var location = result.results[0].location;
+                var latitude = location.latitude;
+                var longitude = location.longitude;
+
+                // Use latitude and longitude as needed.
+                console.log('Latitude:', latitude);
+                console.log('Longitude:', longitude);
+
+                // Update the latitude and longitude display
+                document.getElementById('latitude-display').textContent = latitude;
+                document.getElementById('longitude-display').textContent = longitude;
+
+                // Show the suggestion as a pushpin and center the map over it.
+                var pin = new Microsoft.Maps.Pushpin(location);
+                map.entities.push(pin);
+
+                map.setView({ bounds: result.results[0].bestView });
+            } else {
+                console.log('Geocode failed for the provided address.');
+            }
+            }
+        });
+
+        return true; // Allow form submission.
+        }
+    </script>
+    <script src='https://www.bing.com/api/maps/mapcontrol?key={{ bing_maps_api_key }}&callback=GetMap' async defer></script>
+    
 {% endblock %}
 
 {% block body %}
@@ -27,23 +98,8 @@
 
     {% block scripts %}
         {{ super() }}
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script>
-        function loadMapScenario() {
-            var input = document.getElementById('address');
-            var autoComplete = new Microsoft.Maps.Autocomplete(input, {
-                maxResults: 5,
-                suggestionList: suggestions
-            });
-
-            autoComplete.addEventListener('selectedSuggestion', function (event) {
-                var selectedSuggestion = event.selectedSuggestion;
-                var coordinates = selectedSuggestion.location;
-
-                document.getElementById('latitude').value = coordinates.latitude;
-                document.getElementById('longitude').value = coordinates.longitude;
-            });
-        }
-    </script>
+        
+        
+        
     {% endblock %}
 {% endblock %}

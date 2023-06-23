@@ -3,18 +3,117 @@
 {% block title %}Model{% endblock %}
 
 {% block content %}
+
 <div class="container">
   <h1 class="text-4xl font-bold mb-4">Model</h1>
-  <h1>Address Form</h1>
-  <form method="POST" id="addressForm">
-      {{ form.hidden_tag() }}
-      {{ form.address.label }} {{ form.address(id='address', size=50, autocomplete='on') }}
-      <input type="hidden" id="latitude" name="latitude">
-      <input type="hidden" id="longitude" name="longitude">
-      <input id= "btn" type="submit" value="Submit">
-  </form>
-  <div>
-    Latitude: <span id="latitude-display">{{coordinates[0]}}</span><br>
-    Longitude: <span id="longitude-display">{{coordinates[1]}}</span>
+  <div class="row">
+    <div class="col-md-6">
+      <form id="addressForm" method="POST" onsubmit="return submitForm()">
+        <div class="form-group">
+          <div class="row">
+            <div class="col-md-12">
+              <label for="addressInput">Address:</label>
+              <div class="form-group" id="addressInputContainer">
+                <input type="text" id="addressInput" class="form-control" required />
+                <input type="hidden" id="addressHiddenInput" class="form-control" name="address" value="">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <label for="primarypropertytype">Primary Property Type:</label>
+              <select name="primarypropertytype" class="form-control" required>
+                {% for property_type in property_types %}
+                <option value="{{ property_type }}">{{ property_type }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="buildingtype">Building Type:</label>
+              <select name="buildingtype" class="form-control" required>
+                {% for building_type in building_types %}
+                <option value="{{ building_type }}">{{ building_type }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <div class="form-check">
+                <label class="form-check-label checkbox-label" for="is_using_electricitykWh">Is it using Electricity</label>
+                <input class="form-check-input" type="checkbox" id="is_using_electricitykWh" name="is_using_electricitykWh" value="1">
+              </div>
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <div class="form-check">
+                <label class="form-check-label checkbox-label" for="is_using_naturalgaskWh">Is it using Natural Gaz</label>
+                <input class="form-check-input" type="checkbox" id="is_using_naturalgaskWh" name="is_using_naturalgaskWh" value="1">
+              </div>
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <div class="form-check">
+                <label class="form-check-label checkbox-label" for="is_using_steamusekWh">Is it using Steam</label>
+                <input class="form-check-input" type="checkbox" id="is_using_steamusekWh" name="is_using_steamusekWh" value="1">
+              </div>
+            </div>
+          </div>         
+          <div class="row">
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="numberofbuildings">Number of Buildings:</label>
+              <input type="number" name="numberofbuildings" min="0" required class="form-control">
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="numberoffloors">Number of Floors:</label>
+              <input type="number" name="numberoffloors" min="0" required class="form-control">
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="yearbuilt">Year Built:</label>
+              <input type="number" name="yearbuilt" min="1800" max="2030" required class="form-control">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="largestpropertyusetypegfa">Largest Property Use Type GFA:</label>
+              <input type="number" name="largestpropertyusetypegfa" required class="form-control">
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="propertygfabuildings">Property GFA Buildings:</label>
+              <input type="number" name="propertygfabuildings" step="0.01" required class="form-control">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm d-flex align-items-center justify-content-center">
+              <label for="model">Select a Model:</label>
+              <select name="model" class="form-control" required>
+                {% for model_name in model_names %}
+                <option value="{{ model_name }}">{{ model_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="col-md-6">
+      <div id="map" style="height: 400px;"></div>
+    </div>
   </div>
+  <div class="row">
+    {% if prediction %}
+  <div class="my-8 justify-content-center">
+    <h2 class="text-2xl font-bold mb-4 text-center">Prediction Result</h2>
+    <div class="grid grid-cols-2 gap-4"><div>
+    <h2 class="font-weight-normal text-center"><strong>Votre résultat:</strong> {{ prediction }} pour la sélection suivante:</h2>
+    <div class="table row justify-content-center">{{ table|safe }}</div>
+  </div>
+</div>
+</div>
+{% endif %}
+  </div>
+</div>
 {% endblock %}
