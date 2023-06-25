@@ -4,8 +4,6 @@
 
 {% block styles %}
     {{ super() }}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -15,7 +13,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://www.bing.com/api/maps/mapcontrol?key=AqCmXCSXpin76Mn5hLW5CVVvqbY88Ae9TbqET5mzzwohbCvs-ZbboA-OWuAoNThc&callback=loadMapScenario" async defer></script>
     <link rel="stylesheet" href="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer>
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script>
         var map;
       
@@ -94,7 +93,12 @@
         }
       </script>
     <script src='https://www.bing.com/api/maps/mapcontrol?key={{ bing_maps_api_key }}&callback=GetMap' async defer></script>
-    
+    <script>
+        function clearResult() {
+            // Reset variables or perform other actions to clear the result
+            document.getElementById('result-prediction').style.display = 'none';
+        }
+    </script>
 {% endblock %}
 
 {% block body %}

@@ -4,12 +4,55 @@
 
 {% block content %}
 
-<div>
-    <h2 class="font-weight-normal text-center"><strong>Votre résultat:</strong> pour la sélection suivante:</h2>
 
-    <div class="table row justify-content-center">
-        {{ table_html|safe }}
+<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+        <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+        <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+    </ol>
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <a href="#about">
+                <img src="image1.jpg" class="d-block w-100" alt="Image 1">
+            </a>
+        </div>
+        <div class="carousel-item">
+            <a href="#skills">
+                <img src="image2.jpg" class="d-block w-100" alt="Image 2">
+            </a>
+        </div>
+        <div class="carousel-item">
+            <a href="/analyse">
+                <img src="image3.jpg" class="d-block w-100" alt="Image 3">
+            </a>
+        </div>
     </div>
+    <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>
+
+<div id="about" class="container">
+    <h2>About Me</h2>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus maximus est non pharetra faucibus. Donec at
+        massa id mi euismod rutrum in ac dui. Etiam a efficitur velit. Sed hendrerit mauris a mauris pharetra, eget
+        tincidunt nisi iaculis. Donec aliquam purus id fringilla finibus. Phasellus pellentesque elit in tortor
+        fermentum, vitae viverra nunc sollicitudin.</p>
+</div>
+
+<div id="skills" class="container">
+    <h2>My Skills</h2>
+    <ul>
+        <li>HTML</li>
+        <li>CSS</li>
+        <li>JavaScript</li>
+    </ul>
 </div>
 
 {% endblock %}

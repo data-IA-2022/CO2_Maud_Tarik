@@ -105,25 +105,36 @@
       </div>
     </div>
   </div>
-  <div class="row">
+  <div class="row" id="result-prediction">
     {% if ghgemissions and energyuse %}
-    <div class="my-8 justify-content-center">
-      <div>
-        <h2 class="font-weight-normal text-center">
-          <strong>Your result:</strong>
-        </h2>
-        <div class="table row justify-content-center">{{ table|safe }}</div>
+      <div class="my-8 justify-content-center">
+        <div>
+          <h2 class="font-weight-normal text-center">
+            <strong>For the following selection:</strong>
+          </h2>
+          <div class="table row justify-content-center">{{ table|safe }}</div>
+        </div>
+        <div>
+          <h2 class="font-weight-normal text-center"><strong>The result for your building(s):</strong></h2>
+          <h3 class="font-weight-normal text-center">
+            <strong>Total GHG Emissions:</strong> {{ ghgemissions }} équivalent tonne CO2
+          </h3>
+          <h3 class="font-weight-normal text-center">
+            <strong>Site Energy Use:</strong> {{ energyuse }} kWh
+          </h3>
+          <div class="text-center">
+            <button type="button" class="btn btn-primary" onclick="clearResult()">Clear Result</button>
+          </div>
+        </div>
       </div>
-      <div>
-        <h2 class="font-weight-normal text-center"><strong>For the following selection:</strong></h2>
-        <h3 class="font-weight-normal text-center">
-          <strong>Total GHG Emissions:</strong> {{ ghgemissions }} équivalent tonne CO2
-        </h3>
-        <h3 class="font-weight-normal text-center">
-          <strong>Site Energy Use:</strong> {{ energyuse }} kWh
-        </h3>
-      </div>
-    </div>
+    {% else %}
+      {% if request.method == 'POST' %}
+        <div class="my-8 justify-content-center">
+          <div id="spinner" class="spinner">
+            <img src="{{ url_for('static', filename='spinner.gif') }}" alt="Loading Spinner">
+          </div>
+        </div>
+      {% endif %}
     {% endif %}
   </div>
 </div>
