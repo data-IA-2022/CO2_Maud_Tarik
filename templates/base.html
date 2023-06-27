@@ -14,6 +14,7 @@
     <script src="https://www.bing.com/api/maps/mapcontrol?key=AqCmXCSXpin76Mn5hLW5CVVvqbY88Ae9TbqET5mzzwohbCvs-ZbboA-OWuAoNThc&callback=loadMapScenario" async defer></script>
     <link rel="stylesheet" href="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script>
         var map;
@@ -99,6 +100,24 @@
             document.getElementById('result-prediction').style.display = 'none';
         }
     </script>
+    <script>
+      $(document).ready(function() {
+          // Show/hide the button based on scroll position
+          $(window).scroll(function() {
+              if ($(this).scrollTop() > 100) {
+                  $('#backToTopBtn').addClass('show');
+              } else {
+                  $('#backToTopBtn').removeClass('show');
+              }
+          });
+  
+          // Smooth scroll to top
+          $('#backToTopBtn').click(function(e) {
+              e.preventDefault();
+              $('html, body').animate({scrollTop: 0}, '300');
+          });
+      });
+  </script>
 {% endblock %}
 
 {% block body %}
