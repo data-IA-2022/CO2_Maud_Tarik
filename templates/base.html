@@ -4,14 +4,120 @@
 
 {% block styles %}
     {{ super() }}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://www.bing.com/api/maps/mapcontrol?key=AqCmXCSXpin76Mn5hLW5CVVvqbY88Ae9TbqET5mzzwohbCvs-ZbboA-OWuAoNThc&callback=loadMapScenario" async defer></script>
+    <link rel="stylesheet" href="https://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario" async defer>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        var map;
+      
+        function GetMap() {
+          map = new Microsoft.Maps.Map('#map', {});
+      
+          Microsoft.Maps.loadModule('Microsoft.Maps.AutoSuggest', function () {
+            var manager = new Microsoft.Maps.AutosuggestManager({ map: map });
+            manager.attachAutosuggest('#addressInput', '#addressInputContainer', suggestionSelected);
+          });
+      
+          // Retrieve the coordinates from localStorage if available
+          var latitude = parseFloat(localStorage.getItem('latitude'));
+          var longitude = parseFloat(localStorage.getItem('longitude'));
+      
+          if (!isNaN(latitude) && !isNaN(longitude)) {
+            var location = new Microsoft.Maps.Location(latitude, longitude);
+            var pin = new Microsoft.Maps.Pushpin(location);
+            map.entities.push(pin);
+            map.setView({ center: location, zoom: 10 });
+          }
+        }
+      
+        function suggestionSelected(result) {
+          // Remove previously selected suggestions from the map.
+          map.entities.clear();
+      
+          // Show the suggestion as a pushpin and center the map over it.
+          var pin = new Microsoft.Maps.Pushpin(result.location);
+          map.entities.push(pin);
+      
+          map.setView({ bounds: result.bestView });
+      
+          // Store the latitude and longitude in localStorage
+          localStorage.setItem('latitude', result.location.latitude);
+          localStorage.setItem('longitude', result.location.longitude);
+        }
+      
+        function submitForm() {
+          var addressInput = document.getElementById('addressInput').value;
+          var manager = new Microsoft.Maps.AutosuggestManager();
+          var addressHiddenInput = document.getElementById('addressHiddenInput');
+          addressHiddenInput.value = addressInput;
+          manager.geocode({
+            query: addressInput,
+            callback: function (result) {
+              if (result && result.results && result.results.length > 0) {
+                var location = result.results[0].location;
+                var latitude = location.latitude;
+                var longitude = location.longitude;
+      
+                // Use latitude and longitude as needed.
+                console.log('Latitude:', latitude);
+                console.log('Longitude:', longitude);
+      
+                // Update the latitude and longitude display
+                document.getElementById('latitude-display').textContent = latitude;
+                document.getElementById('longitude-display').textContent = longitude;
+      
+                // Show the suggestion as a pushpin and center the map over it.
+                var pin = new Microsoft.Maps.Pushpin(location);
+                map.entities.push(pin);
+      
+                map.setView({ bounds: result.results[0].bestView });
+      
+                // Store the latitude and longitude in localStorage
+                localStorage.setItem('latitude', latitude);
+                localStorage.setItem('longitude', longitude);
+              } else {
+                console.log('Geocode failed for the provided address.');
+              }
+            }
+          });
+      
+          return true; // Allow form submission.
+        }
+      </script>
+    <script src='https://www.bing.com/api/maps/mapcontrol?key={{ bing_maps_api_key }}&callback=GetMap' async defer></script>
+    <script>
+        function clearResult() {
+            // Reset variables or perform other actions to clear the result
+            document.getElementById('result-prediction').style.display = 'none';
+        }
+    </script>
+    <script>
+      $(document).ready(function() {
+          // Show/hide the button based on scroll position
+          $(window).scroll(function() {
+              if ($(this).scrollTop() > 100) {
+                  $('#backToTopBtn').addClass('show');
+              } else {
+                  $('#backToTopBtn').removeClass('show');
+              }
+          });
+  
+          // Smooth scroll to top
+          $('#backToTopBtn').click(function(e) {
+              e.preventDefault();
+              $('html, body').animate({scrollTop: 0}, '300');
+          });
+      });
+  </script>
 {% endblock %}
 
 {% block body %}
@@ -23,6 +129,8 @@
 
     {% block scripts %}
         {{ super() }}
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        
+        
+        
     {% endblock %}
 {% endblock %}

@@ -1,11 +1,58 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<style>
+  .navbar {
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar-nav {
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar-brand {
+    display: inline-block;
+    align-items: center;
+    margin-right: 1rem;
+    font-size: 2rem;
+    line-height: inherit;
+    white-space: nowrap;
+  }
+
+  .navbar-light .navbar-nav .nav-link {
+    font-size: 1.8rem;
+  }
+
+  /* Dark mode styles */
+  body.dark-mode {
+    background-color: #333;
+    color: #fff;
+  }
+
+  body.dark-mode .navbar {
+    background-color: #222; /* Adjust the dark mode background color here */
+    color: #fff;
+  }
+
+  body.dark-mode .navbar-brand,
+  body.dark-mode .navbar-nav .nav-link {
+    color: #fff !important;
+  }
+
+  body.dark-mode .navbar-toggler-icon {
+    filter: invert(1);
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-light ">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Projet Azure Maud Tarik</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <a class="navbar-brand pt-0" href="{{ url_for('index') }}">Projet Azure Maud Tarik</a>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
+            <ul class="navbar-nav ml-auto align-items-center">
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('index') }}">Home</a>
                 </li>
@@ -20,7 +67,50 @@
                         <i class="bi bi-github"></i> GitHub
                     </a>
                 </li>
+                <!-- Toggle button for light/dark mode -->
+                <li class="nav-item">
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleDarkMode()">
+                        <i id="sunIcon" class="bi bi-sun-fill"></i>
+                        <i id="moonIcon" class="bi bi-moon-fill d-none"></i>
+                    </button>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
+
+<script>
+  function toggleDarkMode() {
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
+      const body = document.body;
+
+      if (body.classList.contains('dark-mode')) {
+          body.classList.remove('dark-mode');
+          sunIcon.classList.remove('d-none');
+          moonIcon.classList.add('d-none');
+          
+          // Store the dark mode preference in local storage
+          localStorage.setItem('darkMode', 'false');
+      } else {
+          body.classList.add('dark-mode');
+          sunIcon.classList.add('d-none');
+          moonIcon.classList.remove('d-none');
+          
+          // Store the dark mode preference in local storage
+          localStorage.setItem('darkMode', 'true');
+      }
+  }
+
+  // Check if dark mode preference is stored in local storage
+  const prefersDarkMode = localStorage.getItem('darkMode');
+
+  // If dark mode preference exists, apply it on page load
+  if (prefersDarkMode === 'true') {
+      document.body.classList.add('dark-mode');
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
+      sunIcon.classList.add('d-none');
+      moonIcon.classList.remove('d-none');
+  }
+</script>

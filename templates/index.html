@@ -1,15 +1,161 @@
 {% extends 'base.html' %}
 
-{% block title %}index{% endblock %}
+{% block title %}Développez une application pour prédire les émissions de CO2 des bâtiments [cf. A. Guizar, 06-2022]{% endblock %}
 
 {% block content %}
+<style>
+    .carousel-item img {
+        height: 50vh;
+        object-fit: cover;
+    }
 
-<div>
-    <h2 class="font-weight-normal text-center"><strong>Votre résultat:</strong> pour la sélection suivante:</h2>
+    .ressources ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+      }
+      
+      .ressources ul a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 56px;
+        padding: 16px;
+        border: 1px solid rgb(240, 240, 240);
+        background-color: rgb(255, 255, 255);
+      }
 
-    <div class="table row justify-content-center">
-        {{ table_html|safe }}
+      /* Button style */
+    .back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: none;
+        width: 40px;
+        height: 40px;
+        background-color: #333;
+        color: #fff;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 40px;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 9999;
+    }
+    
+    /* Show the button when scroll bar appears */
+    .back-to-top.show {
+        display: block;
+    }
+
+    p, li{
+        font-size: 1.6rem;
+        line-height: 2.4rem;
+    }
+</style>
+
+<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+    <!-- Carousel indicators -->
+    <ol class="carousel-indicators">
+        <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+        <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+        <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+    </ol>
+    
+    <!-- Carousel items -->
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <a href="#projet">
+                <img src="static/img/seattle.jpg" class="d-block w-100" alt="Image 1">
+            </a>
+        </div>
+        <div class="carousel-item">
+            <a href="/analyse">
+                <img src="static/img/data-analysis.jpg" class="d-block w-100" alt="Image 2">
+            </a>
+        </div>
+        <div class="carousel-item">
+            <a href="/model">
+                <img src="static/img/ml.jpg" class="d-block w-100" alt="Image 3">
+            </a>
+        </div>
     </div>
+    
+    <!-- Carousel controls -->
+    <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
 </div>
 
-{% endblock %}
+<div id="projet" class="container">
+    <h1>Développez une application pour prédire les émissions de CO2 des bâtiments [cf. A. Guizar, 06-2022]</h1>
+    <h2>Contexte du projet :</h2>
+    <p>La collectivité d'une ville fait appel à votre agence spécialisée dans l’analyse des émissions CO2 des bâtiments. Le président de la collectivité souhaite mettre en place une stratégie à 4 ans pour réduire les émissions de gaz à effet de serre.</p>
+    
+    <p>Pour cela, vous disposez d’un jeu de données sur l’information de ~ 3000 bâtiments. Ces données représentent des relevés annuels collectés en 2016 par des agents de la ville.</p>
+    
+    <p>Dans un premier temps, le président souhaite avoir une analyse de ce jeu de données et faire un état de lieu de la ville de Seattle en termes d’émissions CO2 et consommation d’énergie. Dans cette analyse, vous devez aussi expliquer ce qui impacte le plus sur les émissions CO2.</p>
+    
+    <p>Puis, étant donné que les relevés sont coûteux à obtenir, la collectivité aimerait avoir un outil de prédiction (machine learning ou deep learning), notamment pour l’utiliser sur les bâtiments où l’on n’a pas encore de relevé ou bien dans les années à venir. Ainsi, ils vont pouvoir prédire la consommation des bâtiments et leurs émissions de CO2.</p>
+
+    <p>Ce modèle devrait être déployé et accessible en ligne via une application en utilisant les services d’Azure, tout en mettant en place une démarche CI/CD.</p>
+    <h2>Modalités pédagogiques</h2>
+    <p>Démarrage le 05/06 et fin prévue en semaine 25 ou 26.</p>
+    <p>Groupe : en binôme.</p>
+    <p>Un membre du projet est nommé chef de projet. Tous les lundis à 14h, le chef de projet présentera les objectifs prévus pour la semaine en cours.</p>
+    <p>Assurer une veille régulière pour réaliser le projet au fur et à mesure.</p>
+    <p>Autonomie dans la réalisation du projet.</p>
+    <p>Appliquer les évolutions régulièrement à votre modèle (développement continu CI/CD).</p>
+    <h2>Référentiels</h2>
+    <p>Certification RNCP Développeur.se en intelligence artificielle</p>
+    
+    <h2>Ressource(s)</h2>
+    <div class="ressources">
+        <ul>
+            <a  title="Ouvrir dans un nouvel onglet" target="_blank" rel="noopener noreferrer" href="https://learn.microsoft.com/fr-fr/certifications/azure-fundamentals/?tab=tab-learning-paths" class="sc-6a4c5dd9-0 jgEzAz">Parcours d'apprentissage AZ900 sur Microsoft Learn</a>
+            <a  title="Ouvrir dans un nouvel onglet" target="_blank" rel="noopener noreferrer" href="https://learn.microsoft.com/fr-fr/certifications/azure-ai-fundamentals/?tab=tab-learning-paths" class="sc-6a4c5dd9-0 jgEzAz">Parcours d'apprentissage AI900 sur Microsoft Learn</a>
+            <a  title="Ouvrir dans un nouvel onglet" target="_blank" rel="noopener noreferrer" href="https://data.seattle.gov/dataset/2016-Building-Energy-Benchmarking/2bpz-gwpy" class="sc-6a4c5dd9-0 jgEzAz">Accès au portail des données</a>
+        </ul>
+    </div>
+    <h2>Modalités d'évaluation</h2>
+    <p>Présentation des travaux et livrables en fin de projet (20 min).</p>
+    <ul>
+        <li>Pré-planning du projet réaliste</li>
+        <li>Schéma fonctionnel du projet</li>
+        <li>Tableau de bord et analyse descriptive des données</li>
+        <li>Interprétabilité du modèle et votre analyse prédictive</li>
+        <li>Fonctionnement de l'application déployée dans le cloud</li>
+        <li>Capacité de travailler dans une approche CI/CD</li>
+    </ul>
+    <h2>Livrables</h2>
+    <ul>
+        <li>Elaborer le schéma fonctionnel de votre projet.</li>
+        <li>Créer une base de données SQL sur Azure alimentée automatiquement par un script à partir d'une source CSV, ou mieux encore, une API.</li>
+        <li>Mettre en place un tableau de bord pour analyser les données des bâtiments liées aux émissions CO2.</li>
+        <li>Identifier les caractéristiques des bâtiments qui impactent le plus les émissions de CO2. Faites des recommandations au président de la collectivité.</li>
+        <li>Développer un modèle de machine learning ou de deep learning et utiliser les techniques d’interprétabilité pour expliquer le fonctionnement de votre modèle.</li>
+        <li>Développer et déployer une application qui utilise votre modèle pour faire des prédictions.</li>
+    </ul>
+    <h2>Critères de performance</h2>
+    <ul>
+        <li>Performance des modèles de prédiction : le jour de la démo, vous allez recevoir un nouveau jeu de données (au format CSV) pour tester votre modèle. Votre modèle sera évalué en fonction du score.</li>
+
+        <li>Compréhension du jeu de données</li>
+        <li>Capacité à apporter une solution dans le temps imparti</li>
+        <li>Qualité de la synthèse du travail</li>
+        </ul>
+        <h2>Conclusion</h2>
+        <p>Le projet consiste à développer une application permettant de prédire et d'anticiper les émissions de CO2 et la consommation d'énergie des bâtiments d'une ville. Vous utiliserez un jeu de données existant pour analyser les émissions de CO2 et identifier les facteurs les plus impactants. Ensuite, vous développerez un modèle de machine learning ou de deep learning pour prédire les émissions de CO2 des bâtiments et les consommations d'énergie.</p>
+        <p>L'application sera déployée en ligne en utilisant les services d'Azure et vous mettrez en place une approche CI/CD pour assurer le développement continu du modèle.</p>
+        <p>En suivant les modalités pédagogiques et en réalisant les livrables demandés, vous serez évalué sur la performance de vos modèles, votre compréhension des données, votre capacité à respecter les délais et la qualité globale de votre travail.</p>
+        <p>À la fin du projet, vous présenterez vos travaux et livrables lors d'une présentation de 20 minutes.</p>
+        
+        <a href="#" class="back-to-top" id="backToTopBtn">
+            <i class="fas fa-arrow-up"></i>
+        </a>
+        {% endblock %}
