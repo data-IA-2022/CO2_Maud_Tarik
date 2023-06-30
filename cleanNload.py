@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from utils import db_azure_connect, get_sod_data, haversine_distance, calculate_angle
+from CO2.utils import *
 from sqlalchemy import create_engine, types, text
 
 from sqlalchemy import create_engine, types
