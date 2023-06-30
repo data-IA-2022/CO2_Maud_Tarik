@@ -196,10 +196,8 @@ app.config['data'] = 'data/input_csv/'  # Specify the path to save uploaded file
 
 @app.route('/prediction_csv', methods=['GET', 'POST'])
 def prediction_csv():
-    if request.method == 'GET':
-        # Get the error message and clear it
-        error_message = None
-        return render_template('prediction_csv.html', error=error_message)
+    error_message = None
+    
 
     if request.method == 'POST':
         file = request.files['csvFile']
@@ -220,8 +218,7 @@ def prediction_csv():
         file.save(filepath)
 
         # Process the CSV file
-        df = pd.read_csv(filepath)
-        processed_csv = process_csv(df)  # Replace with your own processing logic
+        processed_csv = process_csv(filepath)  # Replace with your own processing logic
 
         # Save the processed CSV file
         processed_filename = 'processed_' + filename
@@ -231,7 +228,7 @@ def prediction_csv():
         # Prepare data for rendering in the template
         csv_data = processed_csv.head(5)
         csv_processed = True
-        csv_result_url = f'/download/{processed_filename}'
+        csv_result_url = f'/{processed_filepath}'
 
         return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url, error=error_message)
 

@@ -395,8 +395,17 @@ def train_single_output_models(X, Y, preparation):
 
     return models_compare_metrics, learning_curves_data
 
+import csv
+
+def get_delimiter(file_path, bytes = 4096):
+    sniffer = csv.Sniffer()
+    data = open(file_path, "r").read(bytes)
+    delimiter = sniffer.sniff(data).delimiter
+    return delimiter
+
+
 def process_csv(csv_file):
-    
-    process_csv_file = pd.read_csv(csv_file)
+    delim = get_delimiter(csv_file, bytes = 4096)
+    process_csv_file = pd.read_csv(csv_file, delimiter=delim)
     
     return process_csv_file
