@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import requests
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_bootstrap import Bootstrap
 from werkzeug.utils import secure_filename
 
@@ -192,26 +192,27 @@ def model():
     return render_template('model.html', building_types=building_types, property_types=property_types, suggestions=suggestions, coordinates=coordinates, latitude=latitude,
                            longitude=longitude, bing_maps_api_key=bingApiKey,model_names=model_names)
 
-app.config['data'] = 'data/'  # Specify the path to save uploaded files
+app.config['data'] = 'data/input_csv/'  # Specify the path to save uploaded files
+
 @app.route('/prediction_csv', methods=['GET', 'POST'])
 def prediction_csv():
-    if request.method == 'POST':
-        # Check if a file was uploaded
-        if 'csvFile' not in request.files:
-            error = 'No CSV file uploaded'
-            return render_template('prediction_csv.html', error=error)
+    if request.method == 'GET':
+        # Get the error message and clear it
+        error_message = None
+        return render_template('prediction_csv.html', error=error_message)
 
+    if request.method == 'POST':
         file = request.files['csvFile']
 
         # Check if the file is empty
         if file.filename == '':
-            error = 'No CSV file selected'
-            return render_template('prediction_csv.html', error=error)
+            error_message = 'No CSV file selected'
+            return render_template('prediction_csv.html', error=error_message)
 
         # Check if the file is a CSV file
         if not file.filename.endswith('.csv'):
-            error = 'Invalid file format. Only CSV files are supported.'
-            return render_template('prediction_csv.html', error=error)
+            error_message = 'Invalid file format. Only CSV files are supported.'
+            return render_template('prediction_csv.html', error=error_message)
 
         # Save the file
         filename = secure_filename(file.filename)
@@ -232,7 +233,7 @@ def prediction_csv():
         csv_processed = True
         csv_result_url = f'/download/{processed_filename}'
 
-        return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url)
+        return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url, error=error_message)
 
     return render_template('prediction_csv.html')
 
