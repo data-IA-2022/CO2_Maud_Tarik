@@ -118,6 +118,32 @@
           });
       });
   </script>
+  
+  <script>
+    $(document).ready(function() {
+      // Show the content of the first tab on page load
+      $('#form-tab').addClass('show active');
+      $('.nav-link[data-toggle="tab"]').first().addClass('show active');
+      
+      // Toggle the visibility of tab content when a tab is clicked
+      $('.nav-link[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        if (e.target.hash === '#form-tab') {
+          $('#form-tab').addClass('show active');
+          $('#csv-tab').removeClass('show active');
+        } else if (e.target.hash === '#csv-tab') {
+          $('#form-tab').removeClass('show active');
+          $('#csv-tab').addClass('show active');
+        }
+      });
+    });
+  </script>
+  <script>
+    // Activate the first tab on page load
+    document.addEventListener("DOMContentLoaded", function() {
+      var firstTabLink = document.querySelector(".nav-link[data-toggle='tab']");
+      firstTabLink.click();
+    });
+  </script>
 {% endblock %}
 
 {% block body %}
@@ -128,9 +154,6 @@
     </div>
 
     {% block scripts %}
-        {{ super() }}
-        
-        
-        
+        {{ super() }}                
     {% endblock %}
 {% endblock %}

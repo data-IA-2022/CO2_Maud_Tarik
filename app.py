@@ -85,7 +85,7 @@ def model():
     
     # Get the model names from data file to populate the dropdown box
     model_files = glob('data/best_model_*.pkl')
-    model_names = [os.path.basename(file)[:-4] for file in model_files]
+    model_names = set([os.path.basename(file)[:-4].rsplit('_', 1)[0] for file in model_files])
     # Query the distinct building types
     query2 = "SELECT DISTINCT buildingtype FROM super_table_tm WHERE datayear = 2016"
     building_types = pd.read_sql_query(query2, engine)["buildingtype"].tolist()
@@ -171,11 +171,13 @@ def model():
             # get selected model selected_model field
             selected_model = request.form['model']
             # import model avec joblib
-            loaded_model = joblib.load(f'data/{selected_model}.pkl')
+            loaded_model_energyuse = joblib.load(f'data/{selected_model}_siteenergyusekWh.pkl')
+            loaded_model_ghgemissions = joblib.load(f'data/{selected_model}_totalghgemissions.pkl')
             # prediction avec le modele
-            y_pred = loaded_model.predict(df_input)
-            ghgemissions = np.exp(round(y_pred[0][0], 2))
-            energyuse = np.exp(round(y_pred[0][1], 2))
+            y_pred_energyuse = loaded_model_energyuse.predict(df_input)
+            y_pred_ghgemissions = loaded_model_ghgemissions.predict(df_input)
+            ghgemissions = round(y_pred_ghgemissions[0], 2)
+            energyuse = round(y_pred_energyuse[0], 2)
                         
             
         except json.decoder.JSONDecodeError as e:
@@ -185,7 +187,8 @@ def model():
                  
         return render_template('model.html', building_types=building_types, property_types=property_types, suggestions=suggestions, coordinates=coordinates, latitude=latitude,
                                longitude=longitude, bing_maps_api_key=bingApiKey,table = df_input.to_html(),
-                               model_names=model_names, ghgemissions=ghgemissions,energyuse=energyuse)
+                               model_names=model_names, ghgemissions=ghgemissions,energyuse=energyuse)    
+    
     return render_template('model.html', building_types=building_types, property_types=property_types, suggestions=suggestions, coordinates=coordinates, latitude=latitude,
                            longitude=longitude, bing_maps_api_key=bingApiKey,model_names=model_names)
 

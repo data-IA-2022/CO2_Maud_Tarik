@@ -199,3 +199,198 @@ df_list_per_year = []
 #     else:
 #         print(f"No column differences found between 2016 and {year}")
 #     print()
+
+from sklearn.preprocessing import OneHotEncoder, RobustScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.pipeline import Pipeline
+
+
+def create_data_preparation(data):
+    """
+    Create a data preparation pipeline for the given dataset.
+
+    Parameters:
+        data (pd.DataFrame): The input dataset.
+
+    Returns:
+        preparation (ColumnTransformer): The data preparation pipeline.
+
+    Raises:
+        ValueError: If any of the required columns are missing in the dataset.
+    """
+
+    # Check if the required columns exist in the dataset
+    required_columns = ['buildingtype', 'primarypropertytype', 'is_using_steamusekWh', 'is_using_electricitykWh',
+                        'is_using_naturalgaskWh', 'haversinedistance', 'yearbuilt', 'largestpropertyusetypegfa',
+                        'numberofbuildings', 'numberoffloors', 'propertygfabuildings']
+    
+    missing_columns = [col for col in required_columns if col not in data.columns]
+    if missing_columns:
+        raise ValueError(f"Missing columns in the dataset: {missing_columns}")
+    
+    # Variables catégorielles à transformer avec OneHotEncoder
+    column_cat_onehot = ['buildingtype', 'primarypropertytype']
+    transfo_cat_onehot = Pipeline(steps=[
+        ('onehot', OneHotEncoder(handle_unknown='ignore'))
+    ])
+    column_bool = ['is_using_steamusekWh', 'is_using_electricitykWh', 'is_using_naturalgaskWh']
+    transfo_bool = FunctionTransformer(validate=False)
+    column_numeric = ['haversinedistance', 'yearbuilt', 'largestpropertyusetypegfa', 'numberofbuildings',
+                      'numberoffloors', 'propertygfabuildings']
+    column_numeric = [col for col in column_numeric if col in data.columns]
+    transfo_numeric = Pipeline(steps=[
+        ('scaling', RobustScaler())
+    ])
+
+    # Création du préparateur de données
+    preparation = ColumnTransformer(transformers=[
+        ('data_numeric', transfo_numeric,  column_numeric),
+        ('data_cat_onehot', transfo_cat_onehot, column_cat_onehot),
+        ('data_bool', transfo_bool, column_bool)
+    ])
+
+    return preparation
+
+import time
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV, learning_curve
+import xgboost as xgb
+from sklearn.ensemble import RandomForestRegressor
+import lightgbm as lgb
+from sklearn.ensemble import GradientBoostingRegressor
+import joblib
+
+
+def train_single_output_models(X, Y, preparation):
+    
+    """
+    Train and evaluate single-output regression models using grid search.
+
+    Args:
+        X (numpy array or pandas DataFrame): Training feature data.
+        Y (numpy array or pandas DataFrame): Training target data.
+        preparation 
+
+    Returns:
+        models_compare_metrics (pandas DataFrame): DataFrame containing the model comparison metrics.
+        learning_curves_data (list): List of tuples containing learning curve data for each model.
+    Exemple of use:
+    models_compare_metrics, learning_curves_data = train_single_output_models(X, Y, preparation)
+    """
+    
+    # train test split
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42) 
+    #initialisation de 
+    models_opti = []
+    parameters = {}
+    models_param = {
+        RandomForestRegressor: {
+            'model__n_estimators': [100, 200, 500],
+            'model__max_depth': [3, 5, 7]
+        },
+        xgb.XGBRegressor: {
+            'model__n_estimators': [100, 200, 500],
+            'model__max_depth': [3, 5, 7],
+            'model__learning_rate': [0.1, 0.01, 0.001]
+        },
+        lgb.LGBMRegressor: {
+            'model__n_estimators': [100, 200, 500],
+            'model__max_depth': [3, 5, 7],
+            'model__learning_rate': [0.1, 0.01, 0.001]
+        },
+        GradientBoostingRegressor: {
+            'model__loss': ['squared_error', 'huber'],
+            'model__n_estimators': [100, 200, 500],
+            'model__max_depth': [3, 5, 7],
+            'model__learning_rate': [0.1, 0.01, 0.001]
+        }
+    }
+
+    model_names = [
+        'RandomForestRegressor',
+        'XGBRegressor',
+        'LGBMRegressor',
+        'GradientBoostingRegressor'
+    ]
+
+    metrics = ['train_time', 'test_time', 'R2_score_train', 'R2_score_test', 'MAE_train_score', 'MAE_test_score',
+               'Best_parameters']
+    models_compare_metrics = pd.DataFrame(columns=metrics)
+
+    best_model = None
+    best_test_score = -np.inf
+    learning_curves_data = []
+
+    for model, model_name in zip(models_param.keys(), model_names):
+        pipeline = Pipeline(steps=[('preparation', preparation),('model', model())])
+
+        parameters = models_param[model]
+
+        gscv = GridSearchCV(pipeline, parameters, scoring='r2', cv=5, verbose=2)
+        start_time = time.time()
+        gscv.fit(X_train, Y_train)
+        end_time = time.time()
+        models_opti.append(gscv)
+
+        elapsed_time = end_time - start_time
+        print(model_name, gscv.best_score_, gscv.best_params_, "--- Time taken:", elapsed_time, "seconds")
+
+        best_estimator = gscv.best_estimator_
+        best_estimator.fit(X_train, Y_train)
+
+        start_time = time.time()
+        best_estimator.predict(X_train)
+        train_time = time.time() - start_time
+
+        start_time = time.time()
+        best_estimator.predict(X_test)
+        test_time = time.time() - start_time
+
+        r2_score_train = best_estimator.score(X_train, Y_train)
+        r2_score_test = best_estimator.score(X_test, Y_test)
+        mae_train_score = mean_absolute_error(Y_train, best_estimator.predict(X_train))
+        mae_test_score = mean_absolute_error(Y_test, best_estimator.predict(X_test))
+
+        best_parameters = gscv.best_params_
+
+        # Calculate the score on the test data
+        test_score = best_estimator.score(X_test, Y_test)
+        print(test_score)
+
+        # Save the best model based on the test score
+        if test_score > best_test_score:
+            best_model = best_estimator
+            best_test_score = test_score
+            best_parameters = gscv.best_params_
+
+        # Save the best model
+        if best_model is not None:
+            target_name = Y_train.columns[0]  # Assuming Y_train is a DataFrame with a single column
+            joblib.dump(best_model, f'data/best_model_{model_name}_{target_name}.pkl')
+
+        # Save the best parameters
+        target_name = Y_train.columns[0]  # Assuming Y_train is a DataFrame with a single column
+        joblib.dump(best_parameters, f'data/best_parameters_{model_name}_{target_name}.pkl')
+
+        models_compare_metrics.loc[model_name] = [train_time, test_time, r2_score_train, r2_score_test,
+                                                  mae_train_score, mae_test_score, best_parameters]
+
+        print("R2 score train:", r2_score_train)
+        print("R2 score test:", r2_score_test)
+        print("MAE train score:", mae_train_score)
+        print("MAE test score:", mae_test_score)
+        print("Best parameters:", gscv.best_params_)
+
+        # Generate learning curve data
+        train_sizes, train_scores, test_scores = learning_curve(best_estimator, X_train, Y_train, cv=5, scoring='r2')
+        learning_curves_data.append((model_name,target_name, train_sizes, train_scores, test_scores))
+
+    # Display the comparison dataframe
+    print(models_compare_metrics)
+
+    return models_compare_metrics, learning_curves_data
