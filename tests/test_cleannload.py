@@ -1,6 +1,6 @@
 import pytest
-from CO2.cleanNload import *
-from CO2.utils import *
+from cleanNload import *
+from utils import *
 from sqlalchemy import create_engine
 import pandas as pd
 
