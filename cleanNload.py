@@ -100,9 +100,12 @@ for data_year, data_id in data_ids_dict.items():
     if data_year in'2019':
         data.drop(['complianceissue', 'epapropertytype'], axis=1, inplace=True)
     if data_year in'2020':
+        data['primarypropertytype'] = data['epapropertytype']
         data.drop(['complianceissue', 'epapropertytype'], axis=1, inplace=True)
     if data_year in'2021':
-        data.drop(['complianceissue', 'epapropertytype'], axis=1, inplace=True)
+        data['primarypropertytype'] = data['epapropertytype']
+        data.drop(['complianceissue','epapropertytype'], axis=1, inplace=True)
+        
 
             
     if 'yearsenergystarcertified' in data.columns and 'outlier' in data.columns:
