@@ -150,27 +150,6 @@
         {% endif %}
       </div>
     </div>
-    <!-- CSV tab content -->
-    <div class="tab-pane fade" id="csv-tab">
-      <div class="row">
-        <div class="col-md-6">
-          <form id="csvForm" enctype="multipart/form-data" onsubmit="return submitCSVForm()">
-            <div class="form-group">
-              <label for="csvFile">Upload CSV File:</label>
-              <input type="file" id="csvFile" name="csvFile" class="form-control-file" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Process CSV</button>
-          </form>
-        </div>
-      </div>
-      <div class="row" id="csv-result">
-        {% if csv_processed %}
-          <div class="col-md-6 mt-4">
-            <h2 class="font-weight-normal">Processed CSV File:</h2>
-            <a href="{{ csv_result_url }}" download class="btn btn-primary">Download Result</a>
-          </div>
-        {% endif %}
-      </div>
-    </div>
+  </div>
 </div>
 {% endblock %}

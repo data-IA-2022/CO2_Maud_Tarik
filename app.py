@@ -3,6 +3,7 @@ import numpy as np
 import requests
 from flask import Flask, render_template, request, jsonify
 from flask_bootstrap import Bootstrap
+from werkzeug.utils import secure_filename
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,7 +12,7 @@ from azure.appconfiguration import AzureAppConfigurationClient
 from forms import AddressForm
 import json
 
-from utils import haversine_distance
+from utils import haversine_distance, process_csv
 
 import os
 from glob import glob
@@ -182,8 +183,7 @@ def model():
             
         except json.decoder.JSONDecodeError as e:
             print('Error decoding JSON response:', e)
-            print('Response content:', geocode_response.content)
-        
+            print('Response content:', geocode_response.content)    
                  
         return render_template('model.html', building_types=building_types, property_types=property_types, suggestions=suggestions, coordinates=coordinates, latitude=latitude,
                                longitude=longitude, bing_maps_api_key=bingApiKey,table = df_input.to_html(),
@@ -191,6 +191,52 @@ def model():
     
     return render_template('model.html', building_types=building_types, property_types=property_types, suggestions=suggestions, coordinates=coordinates, latitude=latitude,
                            longitude=longitude, bing_maps_api_key=bingApiKey,model_names=model_names)
+
+app.config['data'] = 'data/'  # Specify the path to save uploaded files
+@app.route('/prediction_csv', methods=['GET', 'POST'])
+def prediction_csv():
+    if request.method == 'POST':
+        # Check if a file was uploaded
+        if 'csvFile' not in request.files:
+            error = 'No CSV file uploaded'
+            return render_template('prediction_csv.html', error=error)
+
+        file = request.files['csvFile']
+
+        # Check if the file is empty
+        if file.filename == '':
+            error = 'No CSV file selected'
+            return render_template('prediction_csv.html', error=error)
+
+        # Check if the file is a CSV file
+        if not file.filename.endswith('.csv'):
+            error = 'Invalid file format. Only CSV files are supported.'
+            return render_template('prediction_csv.html', error=error)
+
+        # Save the file
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['data'], filename)
+        file.save(filepath)
+
+        # Process the CSV file
+        df = pd.read_csv(filepath)
+        processed_csv = process_csv(df)  # Replace with your own processing logic
+
+        # Save the processed CSV file
+        processed_filename = 'processed_' + filename
+        processed_filepath = os.path.join(app.config['data'], processed_filename)
+        processed_csv.to_csv(processed_filepath, index=False)
+
+        # Prepare data for rendering in the template
+        csv_data = processed_csv.head(5)
+        csv_processed = True
+        csv_result_url = f'/download/{processed_filename}'
+
+        return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url)
+
+    return render_template('prediction_csv.html')
+
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

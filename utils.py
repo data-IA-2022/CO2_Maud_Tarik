@@ -289,32 +289,32 @@ def train_single_output_models(X, Y, preparation):
     models_opti = []
     parameters = {}
     models_param = {
-        RandomForestRegressor: {
-            'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [3, 5, 7]
-        },
-        xgb.XGBRegressor: {
-            'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [3, 5, 7],
-            'model__learning_rate': [0.1, 0.01, 0.001]
-        },
-        lgb.LGBMRegressor: {
-            'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [3, 5, 7],
-            'model__learning_rate': [0.1, 0.01, 0.001]
-        },
+        # RandomForestRegressor: {
+        #     'model__n_estimators': [100, 200, 500],
+        #     'model__max_depth': [7, None]
+        # },
+        # xgb.XGBRegressor: {
+        #     'model__n_estimators': [100, 200, 500],
+        #     'model__max_depth': [None],
+        #     'model__learning_rate': [0.1, 0.01, 0.001]
+        # },
+        # lgb.LGBMRegressor: {
+        #     'model__n_estimators': [100, 200, 500],
+        #     'model__max_depth': [None],
+        #     'model__learning_rate': [0.1, 0.01, 0.001]
+        # },
         GradientBoostingRegressor: {
             'model__loss': ['squared_error', 'huber'],
             'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [3, 5, 7],
+            'model__max_depth': [100],
             'model__learning_rate': [0.1, 0.01, 0.001]
         }
     }
 
     model_names = [
-        'RandomForestRegressor',
-        'XGBRegressor',
-        'LGBMRegressor',
+        # 'RandomForestRegressor',
+        # 'XGBRegressor',
+        # 'LGBMRegressor',
         'GradientBoostingRegressor'
     ]
 
@@ -394,3 +394,9 @@ def train_single_output_models(X, Y, preparation):
     print(models_compare_metrics)
 
     return models_compare_metrics, learning_curves_data
+
+def process_csv(csv_file):
+    
+    process_csv_file = pd.read_csv(csv_file)
+    
+    return process_csv_file
