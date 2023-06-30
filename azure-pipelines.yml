@@ -38,3 +38,11 @@ stages:
         tags: |
           $(tag)
           latest
+  - job: Test
+    displayName: Run Tests
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - script: |
+        pytest
+      displayName: Run Tests
