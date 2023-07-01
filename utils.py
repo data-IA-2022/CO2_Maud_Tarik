@@ -272,7 +272,7 @@ def train_single_output_models(X, Y, preparation):
     """
     
     # train test split
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42) 
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3, random_state=42) 
     #initialisation de 
     models_opti = []
     parameters = {}
@@ -286,11 +286,7 @@ def train_single_output_models(X, Y, preparation):
             'model__max_depth': [10],
             'model__learning_rate': [0.1, 0.01, 0.001]
         },
-        lgb.LGBMRegressor: {
-            'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [10],
-            'model__learning_rate': [0.1, 0.01, 0.001]
-        },
+        
         GradientBoostingRegressor: {
             'model__loss': ['squared_error', 'huber'],
             'model__n_estimators': [100, 200, 500],
@@ -302,7 +298,6 @@ def train_single_output_models(X, Y, preparation):
     model_names = [
         'RandomForestRegressor',
         'XGBRegressor',
-        'LGBMRegressor',
         'GradientBoostingRegressor'
     ]
 
