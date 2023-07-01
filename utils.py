@@ -216,13 +216,14 @@ def create_data_preparation(data):
         ('onehot', OneHotEncoder(handle_unknown='ignore'))
     ])
 
-    # Variables booléennes (sans traitement)
-    column_bool = ['is_using_steamusekWh', 'is_using_electricitykWh', 'is_using_naturalgaskWh']
-    transfo_bool = FunctionTransformer(validate=False)
+    # # Variables booléennes (sans traitement)
+    # column_bool = ['is_using_steamusekWh', 'is_using_electricitykWh', 'is_using_naturalgaskWh']
+    # transfo_bool = FunctionTransformer(validate=False)
 
     # Variables numériques
     column_numeric = ['yearbuilt', 'largestpropertyusetypegfa', 'numberofbuildings',
-                      'numberoffloors', 'propertygfabuildings']
+                      'numberoffloors', 'propertygfabuildings',
+                      'is_using_steamusekWh', 'is_using_electricitykWh', 'is_using_naturalgaskWh']
     column_numeric = [col for col in column_numeric if col in data.columns]
 
     # Numeric data imputation with KNNImputer
@@ -234,8 +235,8 @@ def create_data_preparation(data):
     # Création du préparateur de données
     preparation = ColumnTransformer(transformers=[
         ('data_numeric', transfo_numeric, column_numeric),
-        ('data_cat_onehot', transfo_cat_onehot, column_cat_onehot),
-        ('data_bool', transfo_bool, column_bool)
+        ('data_cat_onehot', transfo_cat_onehot, column_cat_onehot)#,
+        # ('data_bool', transfo_bool, column_bool)
     ])
 
     return preparation
@@ -277,27 +278,27 @@ def train_single_output_models(X, Y, preparation):
     models_opti = []
     parameters = {}
     models_param = {
-        RandomForestRegressor: {
-            'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [10]
-        },
-        xgb.XGBRegressor: {
-            'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [10],
-            'model__learning_rate': [0.1, 0.01, 0.001]
-        },
+        # RandomForestRegressor: {
+        #     'model__n_estimators': [100, 200, 500],
+        #     'model__max_depth': [10]
+        # },
+        # xgb.XGBRegressor: {
+        #     'model__n_estimators': [100, 200, 500],
+        #     'model__max_depth': [10],
+        #     'model__learning_rate': [0.1, 0.01, 0.001]
+        # },
         
         GradientBoostingRegressor: {
-            'model__loss': ['squared_error', 'huber'],
-            'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [10],
-            'model__learning_rate': [0.1, 0.01, 0.001]
+            'model__loss': ['squared_error'],
+            'model__n_estimators': [100, 200],
+            'model__max_depth': [25],
+            'model__learning_rate': [0.1, 0.01]
         }
     }
 
     model_names = [
-        'RandomForestRegressor',
-        'XGBRegressor',
+        # 'RandomForestRegressor',
+        # 'XGBRegressor',
         'GradientBoostingRegressor'
     ]
 
@@ -428,14 +429,14 @@ def process_csv(csv_file):
             df_pred[predcol] = process_csv_file[col].apply(lambda x: 0 if x == 0 else 1)
 
         # import model avec joblib
-        loaded_model_energyuse = joblib.load(f'data/best_model_GradientBoostingRegressor_siteenergyusekWh.pkl')
+        loaded_model_energyuse = joblib.load(f'data/best_model_GradientBoostingRegressor_siteenergyusekbtu.pkl')
         loaded_model_ghgemissions = joblib.load(f'data/best_model_GradientBoostingRegressor_totalghgemissions.pkl')
         
         # prediction avec le modele
         y_pred_energyuse = loaded_model_energyuse.predict(df_pred)
         y_pred_ghgemissions = loaded_model_ghgemissions.predict(df_pred)
-        ghgemissions = round(y_pred_ghgemissions[0], 2)
-        energyuse = round(y_pred_energyuse[0], 2)
+        ghgemissions = y_pred_ghgemissions
+        energyuse = y_pred_energyuse
         process_csv_file['Predict_ghgemissions'] = ghgemissions
         process_csv_file['Predict_energyuse'] = energyuse
                 
