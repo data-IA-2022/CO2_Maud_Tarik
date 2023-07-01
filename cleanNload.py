@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from CO2.utils import *
+from utils import *
 from sqlalchemy import create_engine, types, text
 
 from sqlalchemy import create_engine, types

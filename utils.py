@@ -204,48 +204,36 @@ from sklearn.preprocessing import OneHotEncoder, RobustScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.pipeline import Pipeline
+from sklearn.impute import KNNImputer
 
 
 def create_data_preparation(data):
-    """
-    Create a data preparation pipeline for the given dataset.
+    # ...
 
-    Parameters:
-        data (pd.DataFrame): The input dataset.
-
-    Returns:
-        preparation (ColumnTransformer): The data preparation pipeline.
-
-    Raises:
-        ValueError: If any of the required columns are missing in the dataset.
-    """
-
-    # Check if the required columns exist in the dataset
-    required_columns = ['buildingtype', 'primarypropertytype', 'is_using_steamusekWh', 'is_using_electricitykWh',
-                        'is_using_naturalgaskWh', 'haversinedistance', 'yearbuilt', 'largestpropertyusetypegfa',
-                        'numberofbuildings', 'numberoffloors', 'propertygfabuildings']
-    
-    missing_columns = [col for col in required_columns if col not in data.columns]
-    if missing_columns:
-        raise ValueError(f"Missing columns in the dataset: {missing_columns}")
-    
     # Variables catégorielles à transformer avec OneHotEncoder
     column_cat_onehot = ['buildingtype', 'primarypropertytype']
     transfo_cat_onehot = Pipeline(steps=[
         ('onehot', OneHotEncoder(handle_unknown='ignore'))
     ])
+
+    # Variables booléennes (sans traitement)
     column_bool = ['is_using_steamusekWh', 'is_using_electricitykWh', 'is_using_naturalgaskWh']
     transfo_bool = FunctionTransformer(validate=False)
-    column_numeric = ['haversinedistance', 'yearbuilt', 'largestpropertyusetypegfa', 'numberofbuildings',
+
+    # Variables numériques
+    column_numeric = ['yearbuilt', 'largestpropertyusetypegfa', 'numberofbuildings',
                       'numberoffloors', 'propertygfabuildings']
     column_numeric = [col for col in column_numeric if col in data.columns]
+
+    # Numeric data imputation with KNNImputer
     transfo_numeric = Pipeline(steps=[
+        ('imputer', KNNImputer(n_neighbors=5, weights='uniform')),
         ('scaling', RobustScaler())
     ])
 
     # Création du préparateur de données
     preparation = ColumnTransformer(transformers=[
-        ('data_numeric', transfo_numeric,  column_numeric),
+        ('data_numeric', transfo_numeric, column_numeric),
         ('data_cat_onehot', transfo_cat_onehot, column_cat_onehot),
         ('data_bool', transfo_bool, column_bool)
     ])
@@ -289,32 +277,32 @@ def train_single_output_models(X, Y, preparation):
     models_opti = []
     parameters = {}
     models_param = {
-        # RandomForestRegressor: {
-        #     'model__n_estimators': [100, 200, 500],
-        #     'model__max_depth': [7, None]
-        # },
-        # xgb.XGBRegressor: {
-        #     'model__n_estimators': [100, 200, 500],
-        #     'model__max_depth': [None],
-        #     'model__learning_rate': [0.1, 0.01, 0.001]
-        # },
-        # lgb.LGBMRegressor: {
-        #     'model__n_estimators': [100, 200, 500],
-        #     'model__max_depth': [None],
-        #     'model__learning_rate': [0.1, 0.01, 0.001]
-        # },
+        RandomForestRegressor: {
+            'model__n_estimators': [100, 200, 500],
+            'model__max_depth': [10]
+        },
+        xgb.XGBRegressor: {
+            'model__n_estimators': [100, 200, 500],
+            'model__max_depth': [10],
+            'model__learning_rate': [0.1, 0.01, 0.001]
+        },
+        lgb.LGBMRegressor: {
+            'model__n_estimators': [100, 200, 500],
+            'model__max_depth': [10],
+            'model__learning_rate': [0.1, 0.01, 0.001]
+        },
         GradientBoostingRegressor: {
             'model__loss': ['squared_error', 'huber'],
             'model__n_estimators': [100, 200, 500],
-            'model__max_depth': [100],
+            'model__max_depth': [10],
             'model__learning_rate': [0.1, 0.01, 0.001]
         }
     }
 
     model_names = [
-        # 'RandomForestRegressor',
-        # 'XGBRegressor',
-        # 'LGBMRegressor',
+        'RandomForestRegressor',
+        'XGBRegressor',
+        'LGBMRegressor',
         'GradientBoostingRegressor'
     ]
 
@@ -407,5 +395,53 @@ def get_delimiter(file_path, bytes = 4096):
 def process_csv(csv_file):
     delim = get_delimiter(csv_file, bytes = 4096)
     process_csv_file = pd.read_csv(csv_file, delimiter=delim)
-    
+    # fill Nan Null with np.nan
+    process_csv_file = process_csv_file.fillna(np.nan)
+    # Replace "NULL" with np.nan in your data
+    process_csv_file = process_csv_file.replace("NULL", np.nan).replace("NA", np.nan)
+    error = None
+    df_pred = pd.DataFrame()
+    if set(['BuildingType','PrimaryPropertyType','YearBuilt',
+            'NumberofBuildings','NumberofFloors','PropertyGFABuilding(s)','LargestPropertyUseTypeGFA',
+            'SteamUse(kBtu)', 'Electricity(kBtu)', 'NaturalGas(kBtu)']).issubset(process_csv_file.columns):
+        
+        
+        # yearbuilt field
+        df_pred['yearbuilt'] = process_csv_file['YearBuilt']
+        # buildingtype field
+        df_pred['buildingtype'] = process_csv_file['BuildingType']
+        
+        # primarypropertytype field
+        df_pred['primarypropertytype'] = process_csv_file['PrimaryPropertyType']
+        
+        # primarypropertytype field
+        df_pred['largestpropertyusetypegfa'] = process_csv_file['LargestPropertyUseTypeGFA'].astype(float).round(2)
+        
+        # propertygfabuildings field
+        df_pred['propertygfabuildings'] = process_csv_file['PropertyGFABuilding(s)'].astype(float).round(2)
+        
+        # numberofbuildings field
+        df_pred['numberofbuildings'] = process_csv_file['NumberofBuildings']
+        
+        # numberoffloors field
+        df_pred['numberoffloors'] = process_csv_file['NumberofFloors']
+        
+        cols = ['SteamUse(kBtu)', 'Electricity(kBtu)', 'NaturalGas(kBtu)']
+        predcols = ["is_using_steamusekWh", "is_using_electricitykWh", "is_using_naturalgaskWh"]
+        for col,predcol in zip(cols, predcols):
+            #print(df[col].head())
+            df_pred[predcol] = process_csv_file[col].apply(lambda x: 0 if x == 0 else 1)
+
+        # import model avec joblib
+        loaded_model_energyuse = joblib.load(f'data/best_model_GradientBoostingRegressor_siteenergyusekWh.pkl')
+        loaded_model_ghgemissions = joblib.load(f'data/best_model_GradientBoostingRegressor_totalghgemissions.pkl')
+        
+        # prediction avec le modele
+        y_pred_energyuse = loaded_model_energyuse.predict(df_pred)
+        y_pred_ghgemissions = loaded_model_ghgemissions.predict(df_pred)
+        ghgemissions = round(y_pred_ghgemissions[0], 2)
+        energyuse = round(y_pred_energyuse[0], 2)
+        process_csv_file['Predict_ghgemissions'] = ghgemissions
+        process_csv_file['Predict_energyuse'] = energyuse
+                
     return process_csv_file

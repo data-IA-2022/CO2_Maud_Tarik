@@ -6,150 +6,137 @@
 
 <div class="container">
   <h1 class="text-4xl font-bold mb-4">Model</h1>
-  <!-- Add tab navigation -->
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link active" data-toggle="tab" href="#form-tab">Form</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-toggle="tab" href="#csv-tab">CSV File</a>
-    </li>
-  </ul>
-  <div class="tab-content">
-    <!-- Form tab content -->
-    <div class="tab-pane fade show active" id="form-tab">
-      <div class="row">
-        <div class="col-md-6">
-          <form id="addressForm" method="POST" onsubmit="return submitForm()">
-            <div class="form-group">
-              <div class="row">
-                <div class="col-md-12">
-                  <label for="addressInput">Address:</label>
-                  <div class="form-group" id="addressInputContainer">
-                    <input type="text" id="addressInput" class="form-control" required />
-                    <input type="hidden" id="addressHiddenInput" class="form-control" name="address" value="">
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <label for="primarypropertytype">Primary Property Type:</label>
-                  <select name="primarypropertytype" class="form-control" required>
-                    {% for property_type in property_types %}
-                    <option value="{{ property_type }}">{{ property_type }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label for="buildingtype">Building Type:</label>
-                  <select name="buildingtype" class="form-control" required>
-                    {% for building_type in building_types %}
-                    <option value="{{ building_type }}">{{ building_type }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-sm d-flex flex-column align-items-center justify-content-center">
-                  <div class="form-check">
-                    <label class="form-check-label checkbox-label" for="is_using_electricitykWh">Is it using Electricity</label>
-                    <input class="form-check-input" type="checkbox" id="is_using_electricitykWh" name="is_using_electricitykWh" value="1">
-                  </div>
-                </div>
-                <div class="col-sm d-flex flex-column align-items-center justify-content-center">
-                  <div class="form-check">
-                    <label class="form-check-label checkbox-label" for="is_using_naturalgaskWh">Is it using Natural Gaz</label>
-                    <input class="form-check-input" type="checkbox" id="is_using_naturalgaskWh" name="is_using_naturalgaskWh" value="1">
-                  </div>
-                </div>
-                <div class="col-sm d-flex flex-column align-items-center justify-content-center">
-                  <div class="form-check">
-                    <label class="form-check-label checkbox-label" for="is_using_steamusekWh">Is it using Steam</label>
-                    <input class="form-check-input" type="checkbox" id="is_using_steamusekWh" name="is_using_steamusekWh" value="1">
-                  </div>
-                </div>
-              </div>         
-              <div class="row">
-                <div class="col-sm d-flex flex-column align-items-center justify-content-center">
-                  <label for="numberofbuildings">Number of Buildings:</label>
-                  <input type="number" name="numberofbuildings" min="0" required class="form-control">
-                </div>
-                <div class="col-sm d-flex flex-column align-items-center justify-content-center">
-                  <label for="numberoffloors">Number of Floors:</label>
-                  <input type="number" name="numberoffloors" min="0" required class="form-control">
-                </div>
-                <div class="col-sm d-flex flex-column align-items-center justify-content-center">
-                  <label for="yearbuilt">Year Built:</label>
-                  <input type="number" name="yearbuilt" min="1800" max="2030" required class="form-control">
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-sm d-flex flex-column align-items-center justify-content-center">
-                  <label for="largestpropertyusetypegfa">Largest Property Use Type GFA:</label>
-                  <input type="number" name="largestpropertyusetypegfa" required class="form-control">
-                </div>
-                <div class="col-sm d-flex flex-column align-items-center justify-content-center">
-                  <label for="propertygfabuildings">Property GFA Buildings:</label>
-                  <input type="number" name="propertygfabuildings" step="0.01" required class="form-control">
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-sm d-flex align-items-center justify-content-center">
-                  <label for="model">Select a Model:</label>
-                  <select name="model" class="form-control" required>
-                    {% for model_name in model_names %}
-                    <option value="{{ model_name }}">{{ model_name }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="col-md-6">
-          <div id="mapContainer">
-            <div id="map" style="height: 400px;"></div>
-          </div>
-        </div>
-      </div>
-      <div class="row" id="result-prediction">
-        {% if ghgemissions and energyuse %}
-          <div class="my-8 justify-content-center">
-            <div>
-              <h2 class="font-weight-normal text-center">
-                <strong>For the following selection:</strong>
-              </h2>
-              <div class="table row justify-content-center">{{ table|safe }}</div>
-            </div>
-            <div>
-              <h2 class="font-weight-normal text-center"><strong>The result for your building(s):</strong></h2>
-              <h3 class="font-weight-normal text-center">
-                <strong>Total GHG Emissions:</strong> {{ ghgemissions }} équivalent tonne CO2
-              </h3>
-              <h3 class="font-weight-normal text-center">
-                <strong>Site Energy Use:</strong> {{ energyuse }} kWh
-              </h3>
-              <div class="text-center">
-                <button type="button" class="btn btn-primary" onclick="clearResult()">Clear Result</button>
+  
+  <div class="row">
+    <div class="col-md-6">
+      <form id="addressForm" method="POST" onsubmit="return submitForm()">
+        <div class="form-group">
+          <div class="row">
+            <div class="col-md-12">
+              <label for="addressInput">Address:</label>
+              <div class="form-group" id="addressInputContainer">
+                <input type="text" id="addressInput" class="form-control" required />
+                <input type="hidden" id="addressHiddenInput" class="form-control" name="address" value="">
               </div>
             </div>
           </div>
-        {% else %}
-          {% if request.method == 'POST' %}
-            <div class="my-8 justify-content-center">
-              <div id="spinner" class="spinner">
-                <img src="{{ url_for('static', filename='spinner.gif') }}" alt="Loading Spinner">
+          <div class="row">
+            <div class="col-md-6">
+              <label for="primarypropertytype">Primary Property Type:</label>
+              <select name="primarypropertytype" class="form-control" required>
+                {% for property_type in property_types %}
+                <option value="{{ property_type }}">{{ property_type }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="buildingtype">Building Type:</label>
+              <select name="buildingtype" class="form-control" required>
+                {% for building_type in building_types %}
+                <option value="{{ building_type }}">{{ building_type }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <div class="form-check">
+                <label class="form-check-label checkbox-label" for="is_using_electricitykWh">Is it using Electricity</label>
+                <input class="form-check-input" type="checkbox" id="is_using_electricitykWh" name="is_using_electricitykWh" value="1">
               </div>
             </div>
-          {% endif %}
-        {% endif %}
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <div class="form-check">
+                <label class="form-check-label checkbox-label" for="is_using_naturalgaskWh">Is it using Natural Gaz</label>
+                <input class="form-check-input" type="checkbox" id="is_using_naturalgaskWh" name="is_using_naturalgaskWh" value="1">
+              </div>
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <div class="form-check">
+                <label class="form-check-label checkbox-label" for="is_using_steamusekWh">Is it using Steam</label>
+                <input class="form-check-input" type="checkbox" id="is_using_steamusekWh" name="is_using_steamusekWh" value="1">
+              </div>
+            </div>
+          </div>         
+          <div class="row">
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="numberofbuildings">Number of Buildings:</label>
+              <input type="number" name="numberofbuildings" min="0" required class="form-control">
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="numberoffloors">Number of Floors:</label>
+              <input type="number" name="numberoffloors" min="0" required class="form-control">
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="yearbuilt">Year Built:</label>
+              <input type="number" name="yearbuilt" min="1800" max="2030" required class="form-control">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="largestpropertyusetypegfa">Largest Property Use Type GFA:</label>
+              <input type="number" name="largestpropertyusetypegfa" required class="form-control">
+            </div>
+            <div class="col-sm d-flex flex-column align-items-center justify-content-center">
+              <label for="propertygfabuildings">Property GFA Buildings:</label>
+              <input type="number" name="propertygfabuildings" step="0.01" required class="form-control">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm d-flex align-items-center justify-content-center">
+              <label for="model">Select a Model:</label>
+              <select name="model" class="form-control" required>
+                {% for model_name in model_names %}
+                <option value="{{ model_name }}">{{ model_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="col-md-6">
+      <div id="mapContainer">
+        <div id="map" style="height: 400px;"></div>
       </div>
     </div>
+  </div>
+  <div class="row" id="result-prediction">
+    {% if ghgemissions and energyuse %}
+      <div class="my-8 justify-content-center">
+        <div>
+          <h2 class="font-weight-normal text-center">
+            <strong>For the following selection:</strong>
+          </h2>
+          <div class="table row justify-content-center">{{ table|safe }}</div>
+        </div>
+        <div>
+          <h2 class="font-weight-normal text-center"><strong>The result for your building(s):</strong></h2>
+          <h3 class="font-weight-normal text-center">
+            <strong>Total GHG Emissions:</strong> {{ ghgemissions }} équivalent tonne CO2
+          </h3>
+          <h3 class="font-weight-normal text-center">
+            <strong>Site Energy Use:</strong> {{ energyuse }} kWh
+          </h3>
+          <div class="text-center">
+            <button type="button" class="btn btn-primary" onclick="clearResult()">Clear Result</button>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      {% if request.method == 'POST' %}
+        <div class="my-8 justify-content-center">
+          <div id="spinner" class="spinner">
+            <img src="{{ url_for('static', filename='spinner.gif') }}" alt="Loading Spinner">
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import requests
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file
 from flask_bootstrap import Bootstrap
 from werkzeug.utils import secure_filename
 
@@ -156,7 +156,6 @@ def model():
             haversinedistance = haversine_distance(seattle_center_lat, seattle_center_lon, latitude, longitude)
             # Create the table of df_prediction
             df_input = pd.DataFrame({
-                'haversinedistance': [haversinedistance],  # Wrap scalar value in a list
                 'yearbuilt': [yearbuilt],
                 'is_using_electricitykWh': [is_using_electricitykWh],
                 'is_using_naturalgaskWh': [is_using_naturalgaskWh],
@@ -192,7 +191,7 @@ def model():
     return render_template('model.html', building_types=building_types, property_types=property_types, suggestions=suggestions, coordinates=coordinates, latitude=latitude,
                            longitude=longitude, bing_maps_api_key=bingApiKey,model_names=model_names)
 
-app.config['data'] = 'data/input_csv/'  # Specify the path to save uploaded files
+app.config['data'] = 'data'  # Specify the path to save uploaded files
 
 @app.route('/prediction_csv', methods=['GET', 'POST'])
 def prediction_csv():
@@ -217,23 +216,29 @@ def prediction_csv():
         filepath = os.path.join(app.config['data'], filename)
         file.save(filepath)
 
+               
         # Process the CSV file
         processed_csv = process_csv(filepath)  # Replace with your own processing logic
 
         # Save the processed CSV file
         processed_filename = 'processed_' + filename
         processed_filepath = os.path.join(app.config['data'], processed_filename)
-        processed_csv.to_csv(processed_filepath, index=False)
+        processed_csv.to_csv(processed_filepath,sep=";", index=False)
 
         # Prepare data for rendering in the template
         csv_data = processed_csv.head(5)
         csv_processed = True
-        csv_result_url = f'/{processed_filepath}'
+        csv_result_url = processed_filepath
 
-        return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url, error=error_message)
+        return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url,filename=processed_filename, error=error_message)
 
     return render_template('prediction_csv.html')
 
+@app.route('/download_result', methods=['GET'])
+def download_result():
+    filename = request.args.get('filename')
+    filepath = os.path.join(app.config['data'], filename)
+    return send_file(filepath, as_attachment=True)
 
 
 if __name__ == '__main__':
