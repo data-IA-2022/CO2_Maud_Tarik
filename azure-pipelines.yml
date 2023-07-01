@@ -44,5 +44,6 @@ stages:
       vmImage: $(vmImageName)
     steps:
     - script: |
+        pip install pytest
         pytest
-      displayName: Run Tests
+      displayName: Run Test
