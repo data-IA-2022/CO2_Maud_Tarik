@@ -1,5 +1,5 @@
 import pytest
-from cleanNload import *
+from ..cleanNload import *
 from utils import *
 from sqlalchemy import create_engine
 import pandas as pd
