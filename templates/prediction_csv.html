@@ -34,6 +34,8 @@
       <div class="card mt-4">
         <div class="card-body">
           <h2 class="font-weight-normal">Processed CSV File:</h2>
+          <h2>Average Energy Use Score: {{ score_avg_energy }}</h2>
+          <h2>Average Emissions Score: {{ score_avg_emission }}</h2>
           {{ csv_result_url }}
           <a href="{{ url_for('download_result', filename=filename) }}" class="btn btn-primary">Download Result</a>
           <div class="table-responsive">

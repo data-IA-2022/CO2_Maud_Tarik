@@ -5,6 +5,7 @@ import math
 from sqlalchemy import create_engine, types
 from azure.identity import DefaultAzureCredential
 from azure.appconfiguration import AzureAppConfigurationClient
+from sklearn.metrics import r2_score
 
 import pandas as pd
 from sodapy import Socrata
@@ -424,5 +425,17 @@ def process_csv(csv_file):
         energyuse = y_pred_energyuse
         process_csv_file['Predict_ghgemissions'] = ghgemissions
         process_csv_file['Predict_energyuse'] = energyuse
+        
+        actual_siteenergy = process_csv_file['SiteEnergyUse(kBtu)']
+        actual_ghgemission = process_csv_file['TotalGHGEmissions']
+        
+        scores = {}
+        scores['SiteEnergyUse_R2'] = r2_score(actual_siteenergy, energyuse)
+        scores['GHGEmissions_R2'] = r2_score(actual_ghgemission, ghgemissions)
+        # Calculate the average R2 score for SiteEnergyUse
+        avg_site_energy_use_score = np.mean(scores['SiteEnergyUse_R2'])
+        
+        # Calculate the average R2 score for GHGEmissions
+        avg_ghg_emissions_score = np.mean(scores['GHGEmissions_R2'])
                 
-    return process_csv_file
+    return process_csv_file, avg_site_energy_use_score, avg_ghg_emissions_score

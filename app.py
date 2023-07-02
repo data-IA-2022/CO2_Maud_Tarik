@@ -218,7 +218,7 @@ def prediction_csv():
 
                
         # Process the CSV file
-        processed_csv = process_csv(filepath)  # Replace with your own processing logic
+        processed_csv,avg_site_energy_use_score, avg_ghg_emissions_score = process_csv(filepath)  # Replace with your own processing logic
 
         # Save the processed CSV file
         processed_filename = 'processed_' + filename
@@ -230,7 +230,8 @@ def prediction_csv():
         csv_processed = True
         csv_result_url = processed_filepath
 
-        return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url,filename=processed_filename, error=error_message)
+        return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url,filename=processed_filename, error=error_message,
+                               score_avg_energy=avg_site_energy_use_score,score_avg_emission=avg_ghg_emissions_score)
 
     return render_template('prediction_csv.html')
 
