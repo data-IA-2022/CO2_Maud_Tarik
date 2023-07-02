@@ -171,7 +171,7 @@ def model():
             # get selected model selected_model field
             selected_model = request.form['model']
             # import model avec joblib
-            loaded_model_energyuse = joblib.load(f'data/{selected_model}_siteenergyusekWh.pkl')
+            loaded_model_energyuse = joblib.load(f'data/{selected_model}_siteenergyusekbtu.pkl')
             loaded_model_ghgemissions = joblib.load(f'data/{selected_model}_totalghgemissions.pkl')
             # prediction avec le modele
             y_pred_energyuse = loaded_model_energyuse.predict(df_input)

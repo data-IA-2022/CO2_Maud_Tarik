@@ -204,21 +204,16 @@ from sklearn.preprocessing import OneHotEncoder, RobustScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.impute import KNNImputer
+from sklearn.impute import KNNImputer, SimpleImputer
 
 
 def create_data_preparation(data):
-    # ...
-
     # Variables catégorielles à transformer avec OneHotEncoder
     column_cat_onehot = ['buildingtype', 'primarypropertytype']
     transfo_cat_onehot = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='most_frequent')),
         ('onehot', OneHotEncoder(handle_unknown='ignore'))
     ])
-
-    # # Variables booléennes (sans traitement)
-    # column_bool = ['is_using_steamusekWh', 'is_using_electricitykWh', 'is_using_naturalgaskWh']
-    # transfo_bool = FunctionTransformer(validate=False)
 
     # Variables numériques
     column_numeric = ['yearbuilt', 'largestpropertyusetypegfa', 'numberofbuildings',
@@ -226,17 +221,16 @@ def create_data_preparation(data):
                       'is_using_steamusekWh', 'is_using_electricitykWh', 'is_using_naturalgaskWh']
     column_numeric = [col for col in column_numeric if col in data.columns]
 
-    # Numeric data imputation with KNNImputer
+    # Numeric data imputation with SimpleImputer and scaling with RobustScaler
     transfo_numeric = Pipeline(steps=[
-        ('imputer', KNNImputer(n_neighbors=5, weights='uniform')),
-        ('scaling', RobustScaler())
+        ('imputer', SimpleImputer())#,
+        # ('scaling', RobustScaler())
     ])
 
     # Création du préparateur de données
     preparation = ColumnTransformer(transformers=[
-        ('data_numeric', transfo_numeric, column_numeric),
-        ('data_cat_onehot', transfo_cat_onehot, column_cat_onehot)#,
-        # ('data_bool', transfo_bool, column_bool)
+        ('numerical_imputer', transfo_numeric, column_numeric),
+        ('categorical_imputer', transfo_cat_onehot, column_cat_onehot)
     ])
 
     return preparation
@@ -249,9 +243,9 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV, learning_curve
 import xgboost as xgb
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
+from sklearn.linear_model import Lasso
 import lightgbm as lgb
-from sklearn.ensemble import GradientBoostingRegressor
 import joblib
 
 
@@ -278,28 +272,19 @@ def train_single_output_models(X, Y, preparation):
     models_opti = []
     parameters = {}
     models_param = {
-        # RandomForestRegressor: {
-        #     'model__n_estimators': [100, 200, 500],
-        #     'model__max_depth': [10]
-        # },
-        # xgb.XGBRegressor: {
-        #     'model__n_estimators': [100, 200, 500],
-        #     'model__max_depth': [10],
-        #     'model__learning_rate': [0.1, 0.01, 0.001]
-        # },
-        
-        GradientBoostingRegressor: {
-            'model__loss': ['squared_error'],
+        ExtraTreesRegressor: {
             'model__n_estimators': [100, 200],
-            'model__max_depth': [25],
-            'model__learning_rate': [0.1, 0.01]
+            'model__max_depth': [None],
+        },
+        Lasso: {
+            'model__alpha': [0.1, 1.0, 10.0],
+            'model__max_iter': [1000],
         }
     }
 
     model_names = [
-        # 'RandomForestRegressor',
-        # 'XGBRegressor',
-        'GradientBoostingRegressor'
+        'ExtraTreesRegressor',
+        'Lasso'
     ]
 
     metrics = ['train_time', 'test_time', 'R2_score_train', 'R2_score_test', 'MAE_train_score', 'MAE_test_score',
@@ -315,7 +300,7 @@ def train_single_output_models(X, Y, preparation):
 
         parameters = models_param[model]
 
-        gscv = GridSearchCV(pipeline, parameters, scoring='r2', cv=5, verbose=2)
+        gscv = GridSearchCV(pipeline, parameters, scoring='neg_mean_squared_error', cv=5, verbose=2)
         start_time = time.time()
         gscv.fit(X_train, Y_train)
         end_time = time.time()
@@ -429,8 +414,8 @@ def process_csv(csv_file):
             df_pred[predcol] = process_csv_file[col].apply(lambda x: 0 if x == 0 else 1)
 
         # import model avec joblib
-        loaded_model_energyuse = joblib.load(f'data/best_model_GradientBoostingRegressor_siteenergyusekbtu.pkl')
-        loaded_model_ghgemissions = joblib.load(f'data/best_model_GradientBoostingRegressor_totalghgemissions.pkl')
+        loaded_model_energyuse = joblib.load(f'data/best_model_ExtraTreesRegressor_siteenergyusekbtu.pkl')
+        loaded_model_ghgemissions = joblib.load(f'data/best_model_ExtraTreesRegressor_totalghgemissions.pkl')
         
         # prediction avec le modele
         y_pred_energyuse = loaded_model_energyuse.predict(df_pred)
