@@ -31,12 +31,11 @@
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-md-8">
-      <div class="card mt-4">
+      <div class="card mt-4"></div>>
         <div class="card-body">
           <h2 class="font-weight-normal">Processed CSV File:</h2>
           <h2>Average Energy Use Score: {{ score_avg_energy }}</h2>
           <h2>Average Emissions Score: {{ score_avg_emission }}</h2>
-          {{ csv_result_url }}
           <a href="{{ url_for('download_result', filename=filename) }}" class="btn btn-primary">Download Result</a>
           <div class="table-responsive">
             <table class="table mt-4" style="width: 100%;">
@@ -67,6 +66,26 @@
       </div>
     </div>
   </div>
+</div>
+ <!-- Display the two plots side by side -->
+ <div class="row justify-content-center mt-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="font-weight-normal">Energy Use Plot</h2>
+        {{ fig_energy | safe }}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="font-weight-normal">Emissions Plot</h2>
+        {{ fig_emissions | safe }}
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 {% endif %}
 

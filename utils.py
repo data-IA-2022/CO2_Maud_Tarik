@@ -10,6 +10,8 @@ from sklearn.metrics import r2_score
 import pandas as pd
 from sodapy import Socrata
 
+from pycaret.regression import *
+from pycaret.regression import get_config
 
 
 
@@ -224,8 +226,8 @@ def create_data_preparation(data):
 
     # Numeric data imputation with SimpleImputer and scaling with RobustScaler
     transfo_numeric = Pipeline(steps=[
-        ('imputer', SimpleImputer())#,
-        # ('scaling', RobustScaler())
+        ('imputer', SimpleImputer()),
+        ('scaling', RobustScaler())
     ])
 
     # Création du préparateur de données
@@ -414,9 +416,20 @@ def process_csv(csv_file):
             #print(df[col].head())
             df_pred[predcol] = process_csv_file[col].apply(lambda x: 0 if x == 0 else 1)
 
-        # import model avec joblib
+        process_csv_file = process_csv_file[[col for col in process_csv_file.columns if col != 'SiteEnergyUse(kBtu)'] + ['SiteEnergyUse(kBtu)']]
+        # # import model avec joblib
+        # loaded_model_energyuse = joblib.load(f'data/best_model_ExtraTreesRegressor_siteenergyusekbtu.pkl')
+        # loaded_model_ghgemissions = joblib.load(f'data/best_model_ExtraTreesRegressor_totalghgemissions.pkl')
+        # import model avec pycaret
         loaded_model_energyuse = joblib.load(f'data/best_model_ExtraTreesRegressor_siteenergyusekbtu.pkl')
         loaded_model_ghgemissions = joblib.load(f'data/best_model_ExtraTreesRegressor_totalghgemissions.pkl')
+        # # Access the underlying model from the pipeline
+        # loaded_model_energyuse =  load_model(f'data/best_model_siteenergyusekbtu.pkl')
+        # loaded_model_ghgemissions = load_model(f'data/best_model_totalghgemissions.pkl')
+        
+        # # Make predictions using the model pycaret
+        # y_pred_energyuse = predict_model(loaded_model_energyuse, data=df_pred, round=0)['prediction_label']
+        # y_pred_ghgemissions = predict_model(loaded_model_ghgemissions, data=df_pred, round=0)['prediction_label']
         
         # prediction avec le modele
         y_pred_energyuse = loaded_model_energyuse.predict(df_pred)
@@ -437,5 +450,40 @@ def process_csv(csv_file):
         
         # Calculate the average R2 score for GHGEmissions
         avg_ghg_emissions_score = np.mean(scores['GHGEmissions_R2'])
-                
-    return process_csv_file, avg_site_energy_use_score, avg_ghg_emissions_score
+        
+        #################################### Plot pred vs real energy ########################################################
+        import plotly.express as px    
+        X_graph = pd.DataFrame()
+        X_graph['real_siteenergy'] = actual_siteenergy
+        X_graph['train_pred_siteenergy'] = energyuse
+        X_graph['largestpropertyusetypegfa'] = df_pred['largestpropertyusetypegfa']
+        X_graph['buildingtype'] = df_pred['buildingtype']
+
+        # Count the number of observations
+        X_graph['num_observations'] = len(X_graph)
+
+        # Create a scatter plot for real_ghgemissions vs train_pred_ghgemissions
+        fig_energy = px.scatter(data_frame= X_graph, x='real_siteenergy', y='train_pred_siteenergy', title='Correlation: Real vs Predicted Siteenergy',
+                        hover_data=['largestpropertyusetypegfa', 'num_observations'], color='buildingtype')
+        fig_energy.update_xaxes(title='Real siteenergy')
+        fig_energy.update_yaxes(title='Predicted siteenergy')
+        fig_energy
+        
+        #################################### Plot pred vs real ghg emissions ########################################################
+            
+        X_graph = pd.DataFrame()
+        X_graph['real_ghgemissions'] = actual_ghgemission
+        X_graph['train_pred_ghgemissions'] = ghgemissions
+        X_graph['largestpropertyusetypegfa'] = df_pred['largestpropertyusetypegfa']
+        X_graph['buildingtype'] = df_pred['buildingtype']
+
+        # Count the number of observations
+        X_graph['num_observations'] = len(X_graph)
+
+        # Create a scatter plot for real_ghgemissions vs train_pred_ghgemissions
+        fig_emissions = px.scatter(data_frame= X_graph, x='real_ghgemissions', y='train_pred_ghgemissions', title='Correlation: Real vs Predicted GHG Emissions',
+                        hover_data=['largestpropertyusetypegfa', 'num_observations'], color='buildingtype')
+        fig_emissions.update_xaxes(title='Real GHG Emissions')
+        fig_emissions.update_yaxes(title='Predicted GHG Emissions')
+        fig_emissions
+    return process_csv_file, avg_site_energy_use_score, avg_ghg_emissions_score,fig_energy,fig_emissions

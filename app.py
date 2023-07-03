@@ -19,6 +19,9 @@ from glob import glob
 
 import joblib
 
+from pycaret.regression import *
+from pycaret.regression import get_config
+
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.urandom(24) # génération d'une clée pour le CSRF protection in Flask-WTF.
@@ -173,7 +176,14 @@ def model():
             # import model avec joblib
             loaded_model_energyuse = joblib.load(f'data/{selected_model}_siteenergyusekbtu.pkl')
             loaded_model_ghgemissions = joblib.load(f'data/{selected_model}_totalghgemissions.pkl')
+            # # load model pycaret
+            # loaded_model_energyuse =  load_model(f'data/best_model_siteenergyusekbtu.pkl')
+            # loaded_model_ghgemissions = load_model(f'data/best_model_totalghgemissions.pkl')
             # prediction avec le modele
+            # # Make predictions using the model pycaret
+            # y_pred_energyuse = predict_model(loaded_model_energyuse, data=df_input, round=0)['prediction_label']
+            # y_pred_ghgemissions = predict_model(loaded_model_ghgemissions, data=df_input, round=0)['prediction_label']
+            
             y_pred_energyuse = loaded_model_energyuse.predict(df_input)
             y_pred_ghgemissions = loaded_model_ghgemissions.predict(df_input)
             ghgemissions = round(y_pred_ghgemissions[0], 2)
@@ -218,8 +228,10 @@ def prediction_csv():
 
                
         # Process the CSV file
-        processed_csv,avg_site_energy_use_score, avg_ghg_emissions_score = process_csv(filepath)  # Replace with your own processing logic
+        processed_csv,avg_site_energy_use_score, avg_ghg_emissions_score,fig_energy,fig_emissions = process_csv(filepath)  # Replace with your own processing logic
 
+        fig_energy =fig_energy.to_html(full_html=False)
+        fig_emissions =fig_emissions.to_html(full_html=False)
         # Save the processed CSV file
         processed_filename = 'processed_' + filename
         processed_filepath = os.path.join(app.config['data'], processed_filename)
@@ -231,7 +243,7 @@ def prediction_csv():
         csv_result_url = processed_filepath
 
         return render_template('prediction_csv.html', csv_data=csv_data, csv_processed=csv_processed, csv_result_url=csv_result_url,filename=processed_filename, error=error_message,
-                               score_avg_energy=avg_site_energy_use_score,score_avg_emission=avg_ghg_emissions_score)
+                               score_avg_energy=avg_site_energy_use_score,score_avg_emission=avg_ghg_emissions_score,fig_energy=fig_energy,fig_emissions=fig_emissions)
 
     return render_template('prediction_csv.html')
 
