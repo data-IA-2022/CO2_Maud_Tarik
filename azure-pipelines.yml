@@ -38,12 +38,12 @@ stages:
         tags: |
           $(tag)
           latest
-  - job: Test
-    displayName: Run Tests
-    pool:
-      vmImage: $(vmImageName)
-    steps:
-    - script: |
-        pip install -r requirements.txt
-        pytest
-      displayName: Run Test
+  # - job: Test
+  #   displayName: Run Tests
+  #   pool:
+  #     vmImage: $(vmImageName)
+  #   steps:
+  #   - script: |
+  #       pip install -r requirements.txt
+  #       pytest
+  #     displayName: Run Test

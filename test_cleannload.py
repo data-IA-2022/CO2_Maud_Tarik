@@ -1,6 +1,6 @@
 import pytest
-from ..cleanNload import *
-from ..utils import *
+from cleanNload import *
+from utils import *
 from sqlalchemy import create_engine
 import pandas as pd
 
@@ -28,7 +28,7 @@ def test_db_azure_connect(db_test_engine):
     test_data = pd.DataFrame({'id': [1, 2, 3], 'name': ['John', 'Jane', 'Joe']})
 
     # Appeler la fonction de connexion à la base de données
-    db_azure_connect(df=test_data, data_types={}, table_name='test_table')
+    engine = db_azure_connect()
 
     # Vérifier si les données ont été insérées dans la base de données de test
     with db_test_engine.connect() as conn:
